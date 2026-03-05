@@ -13,7 +13,6 @@ import {
 
 import slidesRaw from "./data/slides.json";
 import type { Path, SlideData, SlidesJson } from "./data/slideTypes";
-import { iconFor } from "./data/icons";
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 

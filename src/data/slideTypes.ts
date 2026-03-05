@@ -17,7 +17,10 @@ export type SlideType =
 export type IconKey =
   | "database"
   | "cpu"
-  | "fileText";
+  | "fileText"
+  | "shield"
+  | "lock"
+  | "command";
 
 export interface SlideData {
   kicker?: string;
