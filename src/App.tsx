@@ -11,15 +11,28 @@ import {
   Copy,
 } from "lucide-react";
 
-import slidesRaw from "./data/slides.json";
-import type { Path, SlideData, SlidesJson } from "./data/slideTypes";
+import { slidesJson } from "./data/slideData";
+import type { Path, SlideData } from "./data/slideTypes";
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
 const BLUE = "#3b82f6";
 const RED = "#ef4444";
+const DOCS = "#14b8a6";
 const BLUE_GLOW = "rgba(59,130,246,0.14)";
 const RED_GLOW = "rgba(239,68,68,0.14)";
+const DOCS_GLOW = "rgba(20,184,166,0.18)";
+
+const DOC_LINKS = [
+  {
+    label: "Full User Guide",
+    href: "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+  },
+  {
+    label: "Architecture README",
+    href: "https://github.com/observantio/beobservant/blob/main/README.md",
+  },
+];
 
 function withBaseUrl(src: string) {
   if (!src) return src;
@@ -32,11 +45,13 @@ function withBaseUrl(src: string) {
 function pathAccent(path: Path) {
   if (path === "understand") return BLUE;
   if (path === "use") return RED;
+  if (path === "docs") return DOCS;
   return "#00ffaa";
 }
 function pathGlow(path: Path) {
   if (path === "understand") return BLUE_GLOW;
   if (path === "use") return RED_GLOW;
+  if (path === "docs") return DOCS_GLOW;
   return "rgba(0,255,170,0.18)";
 }
 
@@ -504,6 +519,31 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
           <p className="mt-2 text-xs text-retro-dim">
             Run the command above to spin up Be Observant and the full LGTM stack locally. Great for exploring the UI and features without any commitment.
           </p>
+          <div className="mt-4 flex w-full flex-col items-center gap-3">
+            <button
+              onClick={() => onChoose("docs")}
+              className="inline-flex min-h-11 items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-mono font-semibold transition"
+              style={{ borderColor: DOCS + "55", backgroundColor: DOCS + "12", color: DOCS, boxShadow: `0 0 22px ${DOCS_GLOW}` }}
+            >
+              <FileText className="h-4 w-4" />
+              Open Full Product Documentation
+            </button>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {DOC_LINKS.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-xs font-mono text-zinc-300 transition hover:border-zinc-700 hover:text-zinc-100"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -763,8 +803,6 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
 }
 
 export default function App() {
-  const slidesJson = slidesRaw as SlidesJson;
-
   const [path, setPath] = useState<Path>(null);
   const [legalDone, setLegalDone] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -772,11 +810,28 @@ export default function App() {
   const slides = useMemo(() => {
     if (path === "understand") return slidesJson.understand;
     if (path === "use") return slidesJson.use;
+    if (path === "docs") return slidesJson.docs;
     return [];
-  }, [path, slidesJson]);
+  }, [path]);
+
+  const sectionEntries = useMemo(() => {
+    const starts = new Map<string, number>();
+
+    slides.forEach((slide, index) => {
+      const section = slide.section ?? "Pitch";
+      if (!starts.has(section)) starts.set(section, index);
+    });
+
+    return Array.from(starts.entries()).map(([label, index]) => ({ label, index }));
+  }, [slides]);
 
   const total = slides.length;
   const s = slides[slideIndex];
+  const currentSection = s?.section ?? "Pitch";
+  const currentSectionIndex = Math.max(
+    0,
+    sectionEntries.findIndex((entry) => entry.label === currentSection),
+  );
 
   const accent = pathAccent(path);
   const glow = pathGlow(path);
@@ -829,7 +884,11 @@ export default function App() {
   );
 
   const progressPct = total ? Math.round(((slideIndex + 1) / total) * 100) : 0;
-  const pathLabel = path === "understand" ? "Blue Pill — The Why" : "Red Pill — Deploy & Use";
+  const pathLabel = path === "understand"
+    ? "Blue Pill — The Why"
+    : path === "use"
+      ? "Red Pill — Deploy & Use"
+      : "Documentation — Product Guide";
 
   return (
     <div className="min-h-screen bg-retro-bg text-retro-text font-sans selection:bg-retro-glow/20">
@@ -877,6 +936,31 @@ export default function App() {
           </div>
         </header>
 
+        {sectionEntries.length > 1 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {sectionEntries.map((entry, index) => {
+              const isActive = entry.label === currentSection;
+
+              return (
+                <button
+                  key={entry.label}
+                  onClick={() => go(entry.index)}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                  style={{
+                    borderColor: isActive ? accent + "60" : accent + "25",
+                    backgroundColor: isActive ? accent + "16" : "rgba(10, 10, 10, 0.45)",
+                    color: isActive ? accent : "#a1a1aa",
+                    boxShadow: isActive ? `0 0 18px ${glow}` : "none",
+                  }}
+                >
+                  <span className="text-[10px] uppercase tracking-[0.16em] opacity-70">{String(index + 1).padStart(2, "0")}</span>
+                  {entry.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <main className="mt-8">
           <div className="rounded-3xl border bg-zinc-950/90 overflow-hidden backdrop-blur-sm" style={{ borderColor: accent + "35", boxShadow: `0 16px 44px rgba(0,0,0,0.48), 0 0 0 1px ${accent}16` }}>
             <div
@@ -894,6 +978,12 @@ export default function App() {
                   exit={{ opacity: 0, y: -12 }}
                   transition={{ duration: 0.22 }}
                 >
+                  <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em] text-retro-dim">
+                    <span>Section {currentSectionIndex + 1} / {sectionEntries.length || 1}</span>
+                    <span className="text-zinc-600">|</span>
+                    <span style={{ color: accent }}>{currentSection}</span>
+                  </div>
+
                   {s?.kicker && (
                     <div className="text-sm font-mono font-bold uppercase tracking-[0.18em]" style={{ color: accent }}>
                       <span style={{ color: accent }}>{">"}</span> {s.kicker}

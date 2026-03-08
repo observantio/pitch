@@ -1,0 +1,247 @@
+[
+  {
+    "section": "Docs Hub",
+    "kicker": "Operator Guide",
+    "title": "A complete operator guide for deployment, onboarding, and day-to-day use.",
+    "subtitle": "Follow this guide for setup, environment configuration, first-run verification, telemetry onboarding, UI onboarding, hardening, and troubleshooting.",
+    "type": "bullets",
+    "bullets": [
+      "Setup: prerequisites, exposed ports, and the quickest safe way to boot the local stack.",
+      "Environment: the specific .env groups you actually need to understand before the first run succeeds.",
+      "Operate: what to do in the first hour after login, including API keys, telemetry, alerting, Grafana, and RCA.",
+      "Harden: the controls to revisit before treating the stack as more than a local evaluation environment.",
+      "Reference: troubleshooting symptoms, trusted source material, and direct links back to the repository documentation."
+    ],
+    "links": [
+      {
+        "label": "User Guide",
+        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "description": "Canonical deployment and operator walkthrough."
+      },
+      {
+        "label": "README",
+        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "description": "Architecture, quick start, and stack overview."
+      }
+    ]
+  },
+  {
+    "section": "Setup",
+    "kicker": "Before You Start",
+    "title": "Prerequisites and ports are straightforward, but they need to be correct.",
+    "type": "table",
+    "table": {
+      "columns": ["Requirement", "Value", "Why it matters"],
+      "rows": [
+        ["Runtime", "Docker with docker compose", "The local reference deployment is composed of many coordinated services, not one binary."],
+        ["Bootstrap tooling", "Git and Python 3", "Needed for the installer path and for manual repository setup."],
+        ["Primary UI", "5173", "Main browser entry point for operators and the place where sessions begin."],
+        ["Control plane API", "4319", "Main BeObservant API, docs, health, readiness, and proxy surface."],
+        ["OTLP gateway", "4320", "Only ingress endpoint collectors need to reach for logs, traces, and metrics."],
+        ["Gateway auth", "4321", "Ext_authz service used by Envoy to validate OTLP requests."],
+        ["BeCertain / BeNotified", "4322 / 4323", "RCA and alerting services that must be healthy for their product areas to function."],
+        ["Grafana proxy", "8080", "Browser-facing Grafana path that depends on an authenticated session created via the UI."]
+      ]
+    }
+  },
+  {
+    "section": "Setup",
+    "kicker": "Environment Contract",
+    "title": "A successful first deployment depends on a few critical .env groups.",
+    "type": "table",
+    "table": {
+      "columns": ["Config group", "Key examples", "What to get right"],
+      "rows": [
+        ["Bootstrap admin", "DEFAULT_ADMIN_* and DEFAULT_ORG_ID", "These define the very first account you use to log in and the initial tenant context."],
+        ["Database", "POSTGRES_* and *_DATABASE_URL", "If Postgres credentials change, every dependent service URL must stay consistent."],
+        ["Auth mode", "AUTH_PROVIDER and AUTH_PASSWORD_FLOW_ENABLED", "Use local for the first deployment unless you intentionally want to debug OIDC or Keycloak on day one."],
+        ["Encryption and signing", "DATA_ENCRYPTION_KEY and service tokens", "Replace placeholders with strong unique values so service-to-service auth and secrets are not weak by default."],
+        ["OTLP ingest", "DEFAULT_OTLP_TOKEN, allowlist, rate limit, cache", "This is what makes collector traffic both functional and bounded."],
+        ["Grafana", "GF_* and proxy-related values", "The Grafana root URL and auth-proxy layout need to match the proxied browser path."],
+        ["BeCertain tuning", "quality gating and threshold values", "Start with defaults until you have enough real telemetry to tune signal quality intelligently."],
+        ["Proxy and cookie security", "CORS, secure cookies, trusted proxy headers", "Revisit these before wider rollout so browser and reverse-proxy behavior stays correct."]
+      ]
+    }
+  },
+  {
+    "section": "Setup",
+    "kicker": "First Boot",
+    "title": "A clean first-run sequence makes the stack easier to validate and operate.",
+    "type": "workflow",
+    "workflowSteps": [
+      {
+        "label": "Pick installer or manual path",
+        "detail": "Use python3 install.py for the quickest local evaluation, or clone, create .env, and run docker compose up -d --build if you want full manual control."
+      },
+      {
+        "label": "Wait for health, not just containers",
+        "detail": "docker compose ps tells you what started, but the control plane ready endpoint tells you when downstream dependencies are actually usable."
+      },
+      {
+        "label": "Open the UI first",
+        "detail": "Log in at http://localhost:5173 before attempting Grafana access, because the Grafana proxy relies on a BeObservant-created browser session."
+      },
+      {
+        "label": "Create or confirm the working API key",
+        "detail": "A correct active key matters because it drives both OTLP token usage and the scoped context used by UI queries and alert actions."
+      },
+      {
+        "label": "Verify with known-good telemetry",
+        "detail": "Use the included otel-agent or a generated collector config before blaming the platform for missing signals from an unverified custom pipeline."
+      }
+    ]
+  },
+  {
+    "section": "Operate",
+    "kicker": "First Hour",
+    "title": "These are the first workflows to complete after login.",
+    "type": "workflow",
+    "workflowSteps": [
+      {
+        "label": "Set active scope",
+        "detail": "Open API Keys, create or inspect a key, and make sure the right scope is active before reading dashboards, logs, traces, or alert rules."
+      },
+      {
+        "label": "Validate telemetry",
+        "detail": "Open Dashboard, Logs, and Traces to confirm data exists before attempting advanced RCA or alert threshold tuning."
+      },
+      {
+        "label": "Open Grafana through the product",
+        "detail": "Use the controlled Grafana entry point rather than direct proxy access so the bootstrap session and permission checks stay intact."
+      },
+      {
+        "label": "Create one test notification path",
+        "detail": "Use Integrations and Alert Manager together so at least one channel and one rule are proven before more complex incident automation is added."
+      },
+      {
+        "label": "Run one RCA job",
+        "detail": "Use a recent time window with enough data and read the summary, root causes, anomalies, topology, causal, and warnings tabs in that order."
+      }
+    ]
+  },
+  {
+    "section": "Operate",
+    "kicker": "Telemetry Onboarding",
+    "title": "The cleanest collector pattern is one exporter per signal, all through the gateway.",
+    "type": "code",
+    "codeLabel": "Gateway-targeted OTLP HTTP exporters",
+    "code": "exporters:\n  otlphttp/logs:\n    endpoint: http://localhost:4320/loki\n    headers:\n      x-otlp-token: YOUR_OTLP_TOKEN\n\n  otlphttp/traces:\n    endpoint: http://localhost:4320/tempo\n    headers:\n      x-otlp-token: YOUR_OTLP_TOKEN\n\n  otlphttp/metrics:\n    endpoint: http://localhost:4320/mimir\n    headers:\n      x-otlp-token: YOUR_OTLP_TOKEN\n\nservice:\n  pipelines:\n    logs:\n      exporters: [otlphttp/logs]\n    traces:\n      exporters: [otlphttp/traces]\n    metrics:\n      exporters: [otlphttp/metrics]"
+  },
+  {
+    "section": "Operate",
+    "kicker": "Alerting Workflow",
+    "title": "A minimal alerting rollout is rule, channel, trigger, incident, then refinement.",
+    "type": "workflow",
+    "workflowSteps": [
+      {
+        "label": "Create a notification channel",
+        "detail": "Use Integrations to create and immediately test one webhook, email, Slack, Teams, or PagerDuty path before making it part of an incident process."
+      },
+      {
+        "label": "Create or import a simple rule",
+        "detail": "Use Alert Manager to start with one easy-to-reason-about expression and confirm it syncs cleanly to Mimir for the correct scope."
+      },
+      {
+        "label": "Confirm active alert visibility",
+        "detail": "When the condition is met, verify the alert shows in the UI and that the notification arrives at the configured destination."
+      },
+      {
+        "label": "Work the incident",
+        "detail": "Open Incidents, assign ownership, add notes, and let status changes reflect the actual alert state instead of resolving prematurely."
+      },
+      {
+        "label": "Refine later",
+        "detail": "Do not over-optimize thresholds before you have enough baseline data; first prove the workflow end to end."
+      }
+    ]
+  },
+  {
+    "section": "Operate",
+    "kicker": "RCA Workflow",
+    "title": "RCA is most useful when it is treated as a corroboration tool grounded in evidence.",
+    "type": "workflow",
+    "workflowSteps": [
+      {
+        "label": "Check data quality first",
+        "detail": "Sparse or synthetic signals can demonstrate the workflow, but the strongest results appear once logs, traces, and metrics all exist in the same window."
+      },
+      {
+        "label": "Create a job for a recent problem window",
+        "detail": "Use the RCA page to choose the correct scope, service, and time range before submitting the job to BeCertain."
+      },
+      {
+        "label": "Read the report in order",
+        "detail": "Start with Summary, then Root Causes, then Anomalies, then Topology and Causal, and finally Warnings so you do not over-trust one weak signal too early."
+      },
+      {
+        "label": "Use evidence links",
+        "detail": "Treat the report as a structured evidence bundle that points you back to exact log lines, trace spans, and metric behavior rather than as a replacement for human judgment."
+      },
+      {
+        "label": "Feed the next investigation",
+        "detail": "Carry the result into incidents and resolution notes so future RCA has better historical context and the team keeps what it learned."
+      }
+    ]
+  },
+  {
+    "section": "Hardening",
+    "kicker": "Before Wider Rollout",
+    "title": "Review these security and operations controls before wider rollout.",
+    "type": "bullets",
+    "bullets": [
+      "Replace every placeholder token, signing key, and shared secret. Do not keep generated or example values longer than necessary.",
+      "Tighten CORS, secure cookies, trusted proxy headers, and trusted CIDR settings so browser and reverse-proxy trust stays explicit.",
+      "Move secrets to a secret manager if your environment requires it, and make sure Postgres is backed up before testing destructive workflows.",
+      "Keep auth simple at first, then move to OIDC or Keycloak only after the rest of the platform is already known-good.",
+      "Delay tuning RCA thresholds, gateway limits, and every alert threshold until the basic flows are verified with real data."
+    ]
+  },
+  {
+    "section": "Reference",
+    "kicker": "Troubleshooting Map",
+    "title": "When something feels wrong, the symptom usually points to one narrow area first.",
+    "type": "table",
+    "table": {
+      "columns": ["Symptom", "Likely cause", "First place to look"],
+      "rows": [
+        ["Login fails", "Bootstrap admin or auth mode mismatch", "Check .env auth provider values and the admin credentials created at install time."],
+        ["Grafana returns 401 or behaves oddly", "Bypassed authenticated launch path or proxy/root URL mismatch", "Open Grafana from the UI first and verify Grafana proxy settings."],
+        ["No logs or traces arrive", "Wrong OTLP token or wrong gateway endpoint", "Check x-otlp-token, collector exporter URLs, and gateway validation behavior."],
+        ["Ready stays unhealthy", "A downstream dependency is still not ready", "Use docker compose ps and the BeObservant ready payload to identify the lagging service."],
+        ["Data appears under the wrong tenant", "Wrong active API key or shared-key confusion", "Return to API Keys and confirm the selected default and target scope."],
+        ["Rules exist but nothing fires", "Scope mismatch, expression issue, or missing metrics", "Check rule target, metric presence, and whether the dataset actually contains the signal."],
+        ["RCA finishes with weak output", "Not enough cross-signal activity in the chosen time window", "Increase the time range or wait for richer logs, traces, and metrics before expecting strong corroboration."],
+        ["Audit or admin actions return 403", "Permission issue rather than backend failure", "Check group inheritance, direct permissions, and the currently signed-in user."
+        ]
+      ]
+    }
+  },
+  {
+    "section": "Reference",
+    "kicker": "Docs Trail",
+    "title": "Go deeper with the full architecture and operator references.",
+    "type": "bullets",
+    "bullets": [
+      "Use the README for architecture, stack purpose, service roles, and quick-start mental model.",
+      "Use USER_GUIDE for prerequisites, deployment, UI page guidance, alerting setup, RCA setup, auth modes, hardening, and common problems.",
+      "Use docker-compose.yml, .env.example, and service main/router/config files when you need exact implementation truth rather than narrative guidance."
+    ],
+    "links": [
+      {
+        "label": "Open README",
+        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "description": "Architecture and full stack overview."
+      },
+      {
+        "label": "Open USER_GUIDE",
+        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "description": "Deployment, UI, alerting, RCA, and hardening guide."
+      },
+      {
+        "label": "Browse Repository",
+        "href": "https://github.com/observantio/beobservant",
+        "description": "Source code, folders, and issues."
+      }
+    ]
+  }
+]

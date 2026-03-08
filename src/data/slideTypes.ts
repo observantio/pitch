@@ -1,4 +1,4 @@
-export type Path = "understand" | "use" | null;
+export type Path = "understand" | "use" | "docs" | null;
 
 export type SlideType =
   | "bullets"
@@ -23,6 +23,7 @@ export type IconKey =
   | "command";
 
 export interface SlideData {
+  section?: string;
   kicker?: string;
   title: string;
   subtitle?: string;
@@ -68,4 +69,5 @@ export interface SlideData {
 export interface SlidesJson {
   understand: SlideData[];
   use: SlideData[];
+  docs: SlideData[];
 }

@@ -1,0 +1,230 @@
+[
+  {
+    "section": "Docs Hub",
+    "kicker": "Documentation Map",
+    "title": "Everything you need to understand the platform lives here.",
+    "subtitle": "Use this guide to move from the big-picture architecture into service detail, UI capability, security boundaries, operating workflows, and deeper reference material.",
+    "type": "bullets",
+    "bullets": [
+      "Platform: what ships in the stack, why each service exists, and how the user, data, and control paths fit together.",
+      "Services: BeObservant, BeGateway, BeNotified, and BeCertain are broken out separately so each backend has a clear responsibility model.",
+      "UI: every major operator page is grouped by job-to-be-done instead of being buried in one generic summary.",
+      "Security and flows: authentication, tenant scoping, OTLP validation, alert routing, Grafana bootstrap, and RCA execution are described as end-to-end paths.",
+      "Reference links: architecture, deployment, and operator guides are available directly from this section whenever you want the raw source material."
+    ],
+    "links": [
+      {
+        "label": "Repository README",
+        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "description": "High-level architecture, stack composition, and quick start."
+      },
+      {
+        "label": "Full User Guide",
+        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "description": "Install, operate, troubleshoot, harden, and learn the product page by page."
+      },
+      {
+        "label": "Project Repository",
+        "href": "https://github.com/observantio/beobservant",
+        "description": "Code, issues, service folders, and implementation details."
+      }
+    ]
+  },
+  {
+    "section": "Platform",
+    "kicker": "System Composition",
+    "title": "Be Observant is one product built from application services plus observability infrastructure.",
+    "subtitle": "The platform combines a control plane, ingestion security, alerting workflows, RCA, and the LGTM runtime into one operating model.",
+    "type": "table",
+    "table": {
+      "columns": ["Component", "Port", "Primary role", "Why it matters"],
+      "rows": [
+        ["BeObservant", "4319", "Main control plane API", "Auth, users, groups, API keys, secure proxying, health, readiness, and UI-facing workflows live here."],
+        ["BeGateway", "4321", "OTLP auth service", "Validates x-otlp-token, enforces allowlists and rate limits, and resolves tenant scope for telemetry ingest."],
+        ["BeCertain", "4322", "RCA and analysis engine", "Runs asynchronous jobs across logs, metrics, and traces to produce ranked root-cause evidence."],
+        ["BeNotified", "4323", "Alerting workflow service", "Owns rules, channels, silences, incidents, webhook ingestion, and Jira integration flows."],
+        ["ui", "5173", "Operator experience", "The place operators actually work: logs, traces, dashboards, alerts, incidents, API keys, users, audit, and RCA."],
+        ["otlp-gateway", "4320", "Envoy edge for telemetry", "Receives OTLP traffic and calls BeGateway before forwarding to Loki, Tempo, and Mimir."],
+        ["grafana-proxy", "8080", "Browser Grafana access", "Keeps Grafana behind BeObservant-authenticated and RBAC-enforced access instead of exposing it directly."],
+        ["postgres / redis", "internal", "State and cache", "Persistent application data, token/cache state, rate limiting, and shared fast state."],
+        ["Loki / Tempo / Mimir / Alertmanager / Grafana", "internal", "Observability engines", "Storage, query, rule evaluation, alert routing, and visualization backends under the product layer."]
+      ]
+    }
+  },
+  {
+    "section": "Platform",
+    "kicker": "System Flow",
+    "title": "Users, telemetry, alerts, and RCA each follow a clear path through the platform.",
+    "type": "workflow",
+    "workflowSteps": [
+      {
+        "label": "User path",
+        "detail": "The UI authenticates against BeObservant, receives identity plus permission context, and then calls BeObservant APIs for logs, traces, alerts, Grafana actions, API keys, users, and RCA."
+      },
+      {
+        "label": "Telemetry path",
+        "detail": "Collectors send OTLP to Envoy on 4320, Envoy calls BeGateway, BeGateway validates x-otlp-token and returns X-Scope-OrgID, then Loki, Tempo, and Mimir ingest data under the right tenant."
+      },
+      {
+        "label": "Alert path",
+        "detail": "Operators create rules through the UI, BeObservant forwards those actions to BeNotified, BeNotified synchronizes rule definitions to Mimir, Alertmanager routes notifications, and webhook events flow back into incidents."
+      },
+      {
+        "label": "Grafana path",
+        "detail": "The UI requests a bootstrap session from BeObservant, the proxy sets the access cookie, and every sensitive /grafana route is authorized before the browser reaches Grafana."
+      },
+      {
+        "label": "RCA path",
+        "detail": "The UI creates a job, BeObservant signs and forwards it to BeCertain, BeCertain queries logs, metrics, and traces, stores results, and returns structured reports back to the UI."
+      }
+    ]
+  },
+  {
+    "section": "Services",
+    "kicker": "Backend Detail",
+    "title": "BeObservant is the control plane, security layer, and orchestration API.",
+    "type": "bullets",
+    "bullets": [
+      "Authentication and identity: local auth, password flow, MFA support, OIDC callback handling, bootstrap admin, user sessions, and permission-aware access checks are anchored here.",
+      "Access management: users, groups, API keys, inherited permissions, scoped actions, and the active tenant context used by downstream observability requests are all mediated here.",
+      "Observability proxy surface: logs, traces, alerting, Grafana hand-off, RCA job creation, system health, and internal validation APIs all hang off the main FastAPI server.",
+      "Security and control middleware: CORS, security headers, request-size limits, concurrency limits, validation handlers, and audit-oriented action logging are registered centrally.",
+      "Operational endpoints: health, readiness, docs, and internal OTLP validation give the rest of the platform a stable contract to depend on."
+    ]
+  },
+  {
+    "section": "Services",
+    "kicker": "Backend Detail",
+    "title": "BeGateway makes OTLP ingest safe, tenant-aware, and hard to bypass.",
+    "type": "bullets",
+    "bullets": [
+      "It is called by Envoy as an external authorization service before telemetry is forwarded to Loki, Tempo, or Mimir.",
+      "It validates x-otlp-token, applies optional IP allowlists, applies request rate limits, and caches validation responses in memory or Redis.",
+      "On a cache miss it asks BeObservant to resolve the token, then returns the tenant scope to Envoy as X-Scope-OrgID so the backends ingest under the correct organization.",
+      "This means applications never need direct network access to Loki, Tempo, or Mimir, and tenant isolation starts at the ingestion edge instead of as an afterthought.",
+      "The gateway is what turns self-hosted LGTM into a protected multi-tenant ingest surface rather than an open collector endpoint."
+    ]
+  },
+  {
+    "section": "Services",
+    "kicker": "Backend Detail",
+    "title": "BeNotified turns raw alert delivery into alerting operations and incident management.",
+    "type": "bullets",
+    "bullets": [
+      "Rules: create, edit, import from YAML, dry-run preview, target the right scope, and synchronize definitions into Mimir for evaluation.",
+      "Channels: manage webhook, email, Slack, Teams, PagerDuty, and related notification targets with visibility controls and encrypted configuration.",
+      "Silences and active alerts: operators can inspect, create, and manage muting without hand-editing backend YAML or switching tools.",
+      "Incidents: alerts can produce incidents with assignment, notes, status changes, timeline history, and collaboration data in one workflow surface.",
+      "Jira and webhook handling: inbound Alertmanager webhooks feed the incident model, while Jira integration lets the platform sync downstream ticket state and comments."
+    ]
+  },
+  {
+    "section": "Services",
+    "kicker": "Backend Detail",
+    "title": "BeCertain is the analysis engine behind RCA, anomaly, topology, and forecast views.",
+    "type": "bullets",
+    "bullets": [
+      "Jobs and reports: it creates asynchronous RCA jobs, lists and retrieves them, stores saved reports, and exposes finished output for later review.",
+      "Multi-signal analysis: it reads from Loki, Tempo, and Mimir rather than duplicating them, combining logs, traces, and metrics into one ranked explanation model.",
+      "Evidence surfaces: summary, root causes, anomaly panels, clusters, topology, causal views, forecast, SLO, and warnings all come from the report model the UI renders.",
+      "Quality tuning: correlation windows, density limits, corroboration requirements, and confidence thresholds let operators tune how strict or permissive RCA should be.",
+      "Tenant-safe proxying: BeObservant forwards calls with service-to-service auth and scoped context so BeCertain can analyze the correct tenant without becoming publicly exposed."
+    ]
+  },
+  {
+    "section": "UI",
+    "kicker": "Frontend Map",
+    "title": "The UI is organized around operator jobs, not generic data-source tabs.",
+    "subtitle": "The route surface in the frontend is permission-gated. Operators only see pages their current account can actually use.",
+    "type": "table",
+    "table": {
+      "columns": ["Page", "Primary job", "Key capabilities"],
+      "rows": [
+        ["Dashboard", "Read platform state", "Health cards, activity widgets, service status, and reorderable overview metrics."],
+        ["Logs", "Query Loki safely", "Builder-mode filters, labels, quick filters, raw LogQL, log volume views, and saved page state."],
+        ["Traces", "Search and inspect Tempo", "Trace search, service discovery, operation filters, direct trace lookup, timeline, and service graph exploration."],
+        ["RCA", "Run and review analysis", "Job composer, queue, report lookup, summary, root causes, anomalies, clusters, topology, causal, forecast/SLO, and warnings."],
+        ["Alert Manager", "Operate alerting", "Active alerts, rule CRUD, import preview, rule testing, silences, and hidden/shared object handling."],
+        ["Incidents", "Coordinate response", "Incident board, assignment, notes, status changes, and Jira-linked operational workflow."],
+        ["Grafana", "Manage dashboards safely", "Dashboards, folders, datasources, and controlled hand-off into Grafana through the proxy session."],
+        ["Integrations", "Wire notifications", "Channel configuration, sharing/visibility, Jira integrations, auth mode, and connectivity tests."],
+        ["API Keys", "Manage scope", "Create keys, set active scope, regenerate OTLP tokens, share with users/groups, and download starter collector config."],
+        ["Users / Groups / Audit", "Administer access", "Identity management, group-based permissions, account lifecycle, audit filtering, and CSV export."]
+      ]
+    }
+  },
+  {
+    "section": "UI",
+    "kicker": "Frontend Detail",
+    "title": "Observability pages cover the daily technical workflow from raw data to guided diagnosis.",
+    "type": "bullets",
+    "bullets": [
+      "Dashboard is the landing surface for platform health and activity, giving operators a quick answer to whether the stack itself is healthy before deeper investigation starts.",
+      "Logs is designed for both exploratory and precise work: label discovery, quick filters, raw queries, and volume context help operators move from broad search to exact evidence.",
+      "Traces focuses on search plus structure: service filters, operation filters, trace lookup, span tree inspection, duration/status controls, and graph views make request-path analysis faster.",
+      "Grafana is not a blind external link. It is a managed entry point for dashboards, folders, and datasources with BeObservant still controlling access.",
+      "RCA is the analysis cockpit where jobs are created, results are revisited, and different report facets are separated into summary, anomalies, topology, causal, and forecast-specific views."
+    ]
+  },
+  {
+    "section": "UI",
+    "kicker": "Frontend Detail",
+    "title": "Operational pages cover alerting, incidents, integrations, scope, and governance.",
+    "type": "bullets",
+    "bullets": [
+      "Alert Manager is where rule lifecycle work happens: create rules, import YAML safely, inspect active alerts, manage silences, and verify expressions before relying on them.",
+      "Incidents is the operations board: assignment, notes, statuses, active-alert linkage, and ticket synchronization turn alerts into coordinated work instead of chat fragments.",
+      "Integrations owns notification and Jira connectivity, including visibility boundaries so personal, team, and tenant-shared connectors stay explicit.",
+      "API Keys is one of the most important pages in the product because scope selection, OTLP token handling, collector generation, and shared access all converge there.",
+      "Users, Groups, and Audit provide the administrative control layer needed to move from a single-admin demo to a shared, governed platform with traceable changes."
+    ]
+  },
+  {
+    "section": "Security",
+    "kicker": "Trust Boundaries",
+    "title": "The platform has three security boundaries that work together.",
+    "type": "workflow",
+    "workflowSteps": [
+      {
+        "label": "User-to-application auth",
+        "detail": "BeObservant handles login, sessions, MFA, permissions, users, groups, and API-key-backed working scope for the UI and browser users."
+      },
+      {
+        "label": "Telemetry ingest auth",
+        "detail": "BeGateway validates x-otlp-token before Envoy forwards data to Loki, Tempo, or Mimir so ingest is protected separately from browser auth."
+      },
+      {
+        "label": "Service-to-service auth",
+        "detail": "BeObservant talks to BeNotified and BeCertain using dedicated service tokens and signed context so downstream services do not trust arbitrary callers."
+      },
+      {
+        "label": "Tenant propagation",
+        "detail": "The active API key and request context determine X-Scope-OrgID and downstream scope, which is how the product preserves separation between organizations and products."
+      }
+    ]
+  },
+  {
+    "section": "Reference",
+    "kicker": "Source of Truth",
+    "title": "When you need exact behavior, these are the sources to trust first.",
+    "type": "bullets",
+    "bullets": [
+      "First trust docker-compose.yml because it defines the live topology, port exposure, and service wiring for this workspace.",
+      "Then trust .env.example because it is the configuration contract across BeObservant, BeGateway, BeNotified, BeCertain, and the supporting infrastructure.",
+      "Then trust service code such as main.py, routers, config modules, and frontend route/API files because they define the actual behavior exposed to users.",
+      "The README is the architecture overview, and USER_GUIDE is the operator runbook for install, first-run flows, page-by-page usage, and hardening."
+    ],
+    "links": [
+      {
+        "label": "Architecture README",
+        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "description": "Read the full architecture narrative and stack breakdown."
+      },
+      {
+        "label": "Operator User Guide",
+        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "description": "Read the install, UI, alerting, RCA, and hardening walkthrough."
+      }
+    ]
+  }
+]
