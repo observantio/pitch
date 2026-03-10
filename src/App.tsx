@@ -42,6 +42,19 @@ function withBaseUrl(src: string) {
   return `${base.replace(/\/$/, "")}/${src.replace(/^\//, "")}`;
 }
 
+function findHorizontalScrollContainer(node: EventTarget | null): HTMLElement | null {
+  if (!(node instanceof HTMLElement)) return null;
+  let current: HTMLElement | null = node;
+  while (current) {
+    if (current.scrollWidth > current.clientWidth) {
+      const overflowX = window.getComputedStyle(current).overflowX;
+      if (overflowX === "auto" || overflowX === "scroll") return current;
+    }
+    current = current.parentElement;
+  }
+  return null;
+}
+
 function pathAccent(path: Path) {
   if (path === "understand") return BLUE;
   if (path === "use") return RED;
@@ -839,6 +852,9 @@ export default function App() {
   const canPrev = slideIndex > 0;
   const canNext = slideIndex < total - 1;
   const touchStartX = React.useRef<number | null>(null);
+  const touchStartY = React.useRef<number | null>(null);
+  const swipeLockedToScroll = React.useRef(false);
+  const slideFrameRef = React.useRef<HTMLDivElement>(null);
 
   const go = useCallback((n: number) => {
     if (total <= 0) return;
@@ -852,6 +868,11 @@ export default function App() {
   };
 
   useEffect(() => {
+    slideFrameRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [path, legalDone, slideIndex]);
+
+  useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft" && canPrev) go(slideIndex - 1);
       if (e.key === "ArrowRight" && canNext) go(slideIndex + 1);
@@ -861,17 +882,31 @@ export default function App() {
   }, [canPrev, canNext, go, slideIndex]);
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    swipeLockedToScroll.current = findHorizontalScrollContainer(e.target) !== null;
     touchStartX.current = e.changedTouches[0]?.clientX ?? null;
+    touchStartY.current = e.changedTouches[0]?.clientY ?? null;
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
     if (touchStartX.current === null) return;
+    if (swipeLockedToScroll.current) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      swipeLockedToScroll.current = false;
+      return;
+    }
     const endX = e.changedTouches[0]?.clientX;
-    if (typeof endX !== "number") return;
+    const endY = e.changedTouches[0]?.clientY;
+    if (typeof endX !== "number" || typeof endY !== "number" || touchStartY.current === null) return;
     const delta = endX - touchStartX.current;
-    if (delta <= -60 && canNext) go(slideIndex + 1);
-    if (delta >= 60 && canPrev) go(slideIndex - 1);
+    const deltaY = endY - touchStartY.current;
+    if (Math.abs(delta) > Math.abs(deltaY)) {
+      if (delta <= -60 && canNext) go(slideIndex + 1);
+      if (delta >= 60 && canPrev) go(slideIndex - 1);
+    }
     touchStartX.current = null;
+    touchStartY.current = null;
+    swipeLockedToScroll.current = false;
   };
 
   if (!path) return <PillChoice onChoose={choosePath} />;
@@ -964,6 +999,7 @@ export default function App() {
         <main className="mt-8">
           <div className="rounded-3xl border bg-zinc-950/90 overflow-hidden backdrop-blur-sm" style={{ borderColor: accent + "35", boxShadow: `0 16px 44px rgba(0,0,0,0.48), 0 0 0 1px ${accent}16` }}>
             <div
+              ref={slideFrameRef}
               className="px-4 py-6 sm:px-10 sm:py-10 relative min-h-[440px] sm:min-h-[520px]"
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
