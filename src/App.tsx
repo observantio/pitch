@@ -328,8 +328,8 @@ function renderContent(slide: SlideData, accent: string) {
               <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
               <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
             </div>
-            <pre className="px-5 py-4 text-xs sm:text-sm font-mono leading-relaxed text-zinc-300 max-h-[400px] overflow-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
-              <code>{slide.code}</code>
+            <pre className="px-5 py-4 text-xs sm:text-sm font-mono leading-relaxed text-zinc-300 max-h-[400px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
+              <code className="whitespace-pre">{slide.code}</code>
             </pre>
           </div>
         </div>
