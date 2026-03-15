@@ -7,7 +7,7 @@
     "type": "bullets",
     "bullets": [
       "Platform: what ships in the stack, why each service exists, and how the user, data, and control paths fit together.",
-      "Services: BeObservant, BeGateway, BeNotified, and BeCertain are broken out separately so each backend has a clear responsibility model.",
+      "Services: Watchdog, Gatekeeper, Notifier, and Resolver are broken out separately so each backend has a clear responsibility model.",
       "UI: every major operator page is grouped by job-to-be-done instead of being buried in one generic summary.",
       "Security and flows: authentication, tenant scoping, OTLP validation, alert routing, Grafana bootstrap, and RCA execution are described as end-to-end paths.",
       "Reference links: architecture, deployment, and operator guides are available directly from this section whenever you want the raw source material."
@@ -15,17 +15,17 @@
     "links": [
       {
         "label": "Repository README",
-        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/README.md",
         "description": "High-level architecture, stack composition, and quick start."
       },
       {
         "label": "Full User Guide",
-        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
         "description": "Install, operate, troubleshoot, harden, and learn the product page by page."
       },
       {
         "label": "Project Repository",
-        "href": "https://github.com/observantio/beobservant",
+        "href": "https://github.com/observantio/watchdog",
         "description": "Code, issues, service folders, and implementation details."
       }
     ]
@@ -33,20 +33,20 @@
   {
     "section": "Platform",
     "kicker": "System Composition",
-    "title": "Be Observant is one product built from application services plus observability infrastructure.",
+    "title": "Watchdog is one product built from application services plus observability infrastructure.",
     "subtitle": "The platform combines a control plane, ingestion security, alerting workflows, RCA, and the LGTM runtime into one operating model.",
     "type": "table",
     "table": {
       "columns": ["Component", "Port", "Primary role", "Why it matters"],
       "rows": [
-        ["BeObservant", "4319", "Main control plane API", "Auth, users, groups, API keys, secure proxying, health, readiness, and UI-facing workflows live here."],
-        ["BeGateway", "4321", "OTLP auth service", "Validates x-otlp-token, enforces allowlists and rate limits, and resolves tenant scope for telemetry ingest."],
-        ["BeCertain", "4322", "RCA and analysis engine", "Runs asynchronous jobs across logs, metrics, and traces to produce ranked root-cause evidence."],
-        ["BeNotified", "4323", "Alerting workflow service", "Owns rules, channels, silences, incidents, webhook ingestion, and Jira integration flows."],
-        ["ui", "5173", "Operator experience", "The place operators actually work: logs, traces, dashboards, alerts, incidents, API keys, users, audit, and RCA."],
-        ["otlp-gateway", "4320", "Envoy edge for telemetry", "Receives OTLP traffic and calls BeGateway before forwarding to Loki, Tempo, and Mimir."],
-        ["grafana-proxy", "8080", "Browser Grafana access", "Keeps Grafana behind BeObservant-authenticated and RBAC-enforced access instead of exposing it directly."],
-        ["postgres / redis", "internal", "State and cache", "Persistent application data, token/cache state, rate limiting, and shared fast state."],
+        ["Watchdog", "4319", "Main control plane API", "Auth, users, groups, API keys, secure proxying, health, readiness, and UI-facing workflows live here."],
+        ["Gatekeeper", "4321", "OTLP auth service", "Validates x-otlp-token, enforces allowlists and rate limits, and resolves tenant scope for telemetry ingest."],
+        ["Resolver", "4322", "RCA and analysis engine", "Runs asynchronous jobs across logs, metrics, and traces to produce ranked root-cause evidence."],
+        ["Notifier", "4323", "Alerting workflow service", "Owns rules, channels, silences, incidents, webhook ingestion, and Jira integration flows."],
+        ["React Interface", "5173", "Operator experience", "The place operators actually work: logs, traces, dashboards, alerts, incidents, API keys, users, audit, and RCA."],
+        ["OTLP Gateway", "4320", "Envoy edge for telemetry", "Receives OTLP traffic and calls Gatekeeper before forwarding to Loki, Tempo, and Mimir."],
+        ["Grafana Proxy", "8080", "Browser Grafana access", "Keeps Grafana behind Watchdog-authenticated and RBAC-enforced access instead of exposing it directly."],
+        ["PostgreSQL / Redis", "internal", "State and cache", "Persistent application data, token/cache state, rate limiting, and shared fast state."],
         ["Loki / Tempo / Mimir / Alertmanager / Grafana", "internal", "Observability engines", "Storage, query, rule evaluation, alert routing, and visualization backends under the product layer."]
       ]
     }
@@ -59,30 +59,30 @@
     "workflowSteps": [
       {
         "label": "User path",
-        "detail": "The UI authenticates against BeObservant, receives identity plus permission context, and then calls BeObservant APIs for logs, traces, alerts, Grafana actions, API keys, users, and RCA."
+        "detail": "The UI authenticates against Watchdog, receives identity plus permission context, and then calls Watchdog APIs for logs, traces, alerts, Grafana actions, API keys, users, and RCA."
       },
       {
         "label": "Telemetry path",
-        "detail": "Collectors send OTLP to Envoy on 4320, Envoy calls BeGateway, BeGateway validates x-otlp-token and returns X-Scope-OrgID, then Loki, Tempo, and Mimir ingest data under the right tenant."
+        "detail": "Collectors send OTLP to Envoy on 4320, Envoy calls Gatekeeper, Gatekeeper validates x-otlp-token and returns X-Scope-OrgID, then Loki, Tempo, and Mimir ingest data under the right tenant."
       },
       {
         "label": "Alert path",
-        "detail": "Operators create rules through the UI, BeObservant forwards those actions to BeNotified, BeNotified synchronizes rule definitions to Mimir, Alertmanager routes notifications, and webhook events flow back into incidents."
+        "detail": "Operators create rules through the UI, Watchdog forwards those actions to Notifier, Notifier synchronizes rule definitions to Mimir, Alertmanager routes notifications, and webhook events flow back into incidents."
       },
       {
         "label": "Grafana path",
-        "detail": "The UI requests a bootstrap session from BeObservant, the proxy sets the access cookie, and every sensitive /grafana route is authorized before the browser reaches Grafana."
+        "detail": "The UI requests a bootstrap session from Watchdog, the proxy sets the access cookie, and every sensitive /grafana route is authorized before the browser reaches Grafana."
       },
       {
         "label": "RCA path",
-        "detail": "The UI creates a job, BeObservant signs and forwards it to BeCertain, BeCertain queries logs, metrics, and traces, stores results, and returns structured reports back to the UI."
+        "detail": "The UI creates a job, Watchdog signs and forwards it to Resolver, Resolver queries logs, metrics, and traces, stores results, and returns structured reports back to the UI."
       }
     ]
   },
   {
     "section": "Services",
     "kicker": "Backend Detail",
-    "title": "BeObservant is the control plane, security layer, and orchestration API.",
+    "title": "Watchdog is the control plane, security layer, and orchestration API.",
     "type": "bullets",
     "bullets": [
       "Authentication and identity: local auth, password flow, MFA support, OIDC callback handling, bootstrap admin, user sessions, and permission-aware access checks are anchored here.",
@@ -95,12 +95,12 @@
   {
     "section": "Services",
     "kicker": "Backend Detail",
-    "title": "BeGateway makes OTLP ingest safe, tenant-aware, and hard to bypass.",
+    "title": "Gatekeeper makes OTLP ingest safe, tenant-aware, and hard to bypass.",
     "type": "bullets",
     "bullets": [
       "It is called by Envoy as an external authorization service before telemetry is forwarded to Loki, Tempo, or Mimir.",
       "It validates x-otlp-token, applies optional IP allowlists, applies request rate limits, and caches validation responses in memory or Redis.",
-      "On a cache miss it asks BeObservant to resolve the token, then returns the tenant scope to Envoy as X-Scope-OrgID so the backends ingest under the correct organization.",
+      "On a cache miss it asks Watchdog to resolve the token, then returns the tenant scope to Envoy as X-Scope-OrgID so the backends ingest under the correct organization.",
       "This means applications never need direct network access to Loki, Tempo, or Mimir, and tenant isolation starts at the ingestion edge instead of as an afterthought.",
       "The gateway is what turns self-hosted LGTM into a protected multi-tenant ingest surface rather than an open collector endpoint."
     ]
@@ -108,7 +108,7 @@
   {
     "section": "Services",
     "kicker": "Backend Detail",
-    "title": "BeNotified turns raw alert delivery into alerting operations and incident management.",
+    "title": "Notifier turns raw alert delivery into alerting operations and incident management.",
     "type": "bullets",
     "bullets": [
       "Rules: create, edit, import from YAML, dry-run preview, target the right scope, and synchronize definitions into Mimir for evaluation.",
@@ -121,14 +121,14 @@
   {
     "section": "Services",
     "kicker": "Backend Detail",
-    "title": "BeCertain is the analysis engine behind RCA, anomaly, topology, and forecast views.",
+    "title": "Resolver is the analysis engine behind RCA, anomaly, topology, and forecast views.",
     "type": "bullets",
     "bullets": [
       "Jobs and reports: it creates asynchronous RCA jobs, lists and retrieves them, stores saved reports, and exposes finished output for later review.",
       "Multi-signal analysis: it reads from Loki, Tempo, and Mimir rather than duplicating them, combining logs, traces, and metrics into one ranked explanation model.",
       "Evidence surfaces: summary, root causes, anomaly panels, clusters, topology, causal views, forecast, SLO, and warnings all come from the report model the UI renders.",
       "Quality tuning: correlation windows, density limits, corroboration requirements, and confidence thresholds let operators tune how strict or permissive RCA should be.",
-      "Tenant-safe proxying: BeObservant forwards calls with service-to-service auth and scoped context so BeCertain can analyze the correct tenant without becoming publicly exposed."
+      "Tenant-safe proxying: Watchdog forwards calls with service-to-service auth and scoped context so Resolver can analyze the correct tenant without becoming publicly exposed."
     ]
   },
   {
@@ -162,7 +162,7 @@
       "Dashboard is the landing surface for platform health and activity, giving operators a quick answer to whether the stack itself is healthy before deeper investigation starts.",
       "Logs is designed for both exploratory and precise work: label discovery, quick filters, raw queries, and volume context help operators move from broad search to exact evidence.",
       "Traces focuses on search plus structure: service filters, operation filters, trace lookup, span tree inspection, duration/status controls, and graph views make request-path analysis faster.",
-      "Grafana is not a blind external link. It is a managed entry point for dashboards, folders, and datasources with BeObservant still controlling access.",
+      "Grafana is not a blind external link. It is a managed entry point for dashboards, folders, and datasources with Watchdog still controlling access.",
       "RCA is the analysis cockpit where jobs are created, results are revisited, and different report facets are separated into summary, anomalies, topology, causal, and forecast-specific views."
     ]
   },
@@ -187,15 +187,15 @@
     "workflowSteps": [
       {
         "label": "User-to-application auth",
-        "detail": "BeObservant handles login, sessions, MFA, permissions, users, groups, and API-key-backed working scope for the UI and browser users."
+        "detail": "Watchdog handles login, sessions, MFA, permissions, users, groups, and API-key-backed working scope for the UI and browser users."
       },
       {
         "label": "Telemetry ingest auth",
-        "detail": "BeGateway validates x-otlp-token before Envoy forwards data to Loki, Tempo, or Mimir so ingest is protected separately from browser auth."
+        "detail": "Gatekeeper validates x-otlp-token before Envoy forwards data to Loki, Tempo, or Mimir so ingest is protected separately from browser auth."
       },
       {
         "label": "Service-to-service auth",
-        "detail": "BeObservant talks to BeNotified and BeCertain using dedicated service tokens and signed context so downstream services do not trust arbitrary callers."
+        "detail": "Watchdog talks to Notifier and Resolver using dedicated service tokens and signed context so downstream services do not trust arbitrary callers."
       },
       {
         "label": "Tenant propagation",
@@ -210,19 +210,19 @@
     "type": "bullets",
     "bullets": [
       "First trust docker-compose.yml because it defines the live topology, port exposure, and service wiring for this workspace.",
-      "Then trust .env.example because it is the configuration contract across BeObservant, BeGateway, BeNotified, BeCertain, and the supporting infrastructure.",
+      "Then trust .env.example because it is the configuration contract across Watchdog, Gatekeeper, Notifier, Resolver, and the supporting infrastructure.",
       "Then trust service code such as main.py, routers, config modules, and frontend route/API files because they define the actual behavior exposed to users.",
       "The README is the architecture overview, and USER_GUIDE is the operator runbook for install, first-run flows, page-by-page usage, and hardening."
     ],
     "links": [
       {
         "label": "Architecture README",
-        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/README.md",
         "description": "Read the full architecture narrative and stack breakdown."
       },
       {
         "label": "Operator User Guide",
-        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
         "description": "Read the install, UI, alerting, RCA, and hardening walkthrough."
       }
     ]

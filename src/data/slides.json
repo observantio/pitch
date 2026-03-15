@@ -32,7 +32,7 @@
       "bullets": [
         "Grafana OSS OIDC support is partial—no team sync, no group mapping, no MFA enforcement at the proxy layer.",
         "Datadog SSO requires the Enterprise plan. New Relic gates SAML behind a dedicated add-on.",
-        "Be Observant ships native Keycloak OIDC out of the box—email-mapped, MFA-enforced, with local account fallback.",
+        "Watchdog ships native Keycloak OIDC out of the box—email-mapped, MFA-enforced, with local account fallback.",
         "OIDC maps 1:1 to email. Bootstrap locally, claim via external IdP later—no re-provisioning required."
       ]
     },
@@ -42,7 +42,7 @@
       "subtitle": "Production observability requires fine-grained access control. Who can query which tenant's logs? Who can silence alerts? Who can read traces for a specific service? OSS stacks have no answer. Enterprise stacks have an invoice.",
       "type": "bullets",
       "bullets": [
-        "Be Observant's RBAC operates at the route level—not just dashboard visibility, but actual API permission enforcement.",
+        "Watchdog's RBAC operates at the route level—not just dashboard visibility, but actual API permission enforcement.",
         "Users inherit permissions from groups. New accounts land in a 'provisioning' role until explicitly granted access.",
         "Visibility scopes are explicit: Private (creator only), Group (read-only team share), or Tenant (org-wide read-only).",
         "Every permission change, access request, and config mutation is immutably logged—no manual audit trail required."
@@ -51,19 +51,19 @@
     {
       "kicker": "The Data Retention Tax",
       "title": "You pay to keep your own data.",
-      "subtitle": "Managed observability vendors charge per GB ingested, per host, per trace—and then charge again to retain it past 15 days. Running LGTM yourself solves the ingestion cost. Be Observant solves everything on top of it.",
+      "subtitle": "Managed observability vendors charge per GB ingested, per host, per trace—and then charge again to retain it past 15 days. Running LGTM yourself solves the ingestion cost. Watchdog solves everything on top of it.",
       "type": "metrics",
       "metrics": [
-        { "value": "$0", "label": "License Cost", "sub": "All Be Observant features ship free. Forever." },
+        { "value": "$0", "label": "License Cost", "sub": "All Watchdog features ship free. Forever." },
         { "value": "∞", "label": "Retention", "sub": "Keep data as long as your storage allows—no vendor limits" },
         { "value": "100%", "label": "OTLP Security", "sub": "Every trace and log validated via tenant-scoped gateway tokens" },
         { "value": "5 min", "label": "Local Setup", "sub": "From zero to a secured, proxied LGTM stack" }
       ]
     },
     {
-      "kicker": "What Be Observant Is",
+      "kicker": "What Watchdog Is",
       "title": "A Control Plane and Hardened Proxy for the LGTM stack.",
-      "subtitle": "Be Observant doesn't replace Loki, Mimir, or Tempo. It wraps them with the security, multi-tenancy, and intelligence layer that transforms a raw OSS stack into a capable observability platform—at zero license cost. The project is actively developed and currently in beta.",
+      "subtitle": "Watchdog doesn't replace Loki, Mimir, or Tempo. It wraps them with the security, multi-tenancy, and intelligence layer that transforms a raw OSS stack into a capable observability platform—at zero license cost. The project is actively developed and currently in beta.",
       "type": "bullets",
       "bullets": [
         "Hardened Gateway: Envoy-based OTLP proxy with token validation, rate limiting, and tenant isolation baked in.",
@@ -78,16 +78,16 @@
       "type": "services",
       "services": [
         {
-          "name": "Gateway-Auth & OTLP-Gateway",
+          "name": "Gatekeeper Gateway",
           "tagline": "The front door to your telemetry. Nothing gets in without a valid token.",
           "image": { "src": "/oltp.png", "alt": "OTLP Gateway diagram" },
           "bullets": [
             "Envoy-based OTLP gateway supports rate limiting, token validation, and request transformation at scale.",
-            "Gateway-Auth validates every incoming request by checking against Be Observant's DB, with token caching for performance.",
+            "Gatekeeper validates every incoming request by checking against Watchdog's DB, with token caching for performance.",
             "Only trusted OTel collectors with valid x-otlp-token headers reach Tempo, Loki, and Mimir—no direct backend exposure.",
             "Tenant isolation is enforced at the gateway layer: each token is scoped to its org, preventing cross-tenant data leakage."
           ],
-          "tags": ["Envoy", "Gateway-Auth", "Token Validation", "Rate Limiting", "Tenant Isolation"]
+          "tags": ["Envoy", "Gatekeeper", "Token Validation", "Rate Limiting", "Tenant Isolation"]
         }
       ]
     },
@@ -97,9 +97,9 @@
       "type": "services",
       "services": [
         {
-          "name": "Be Observant Control Plane",
+          "name": "Watchdog Control Plane",
           "tagline": "Centralized FastAPI orchestration that proxies and scopes access to Grafana, enforces RBAC, and federates queries across all three data planes.",
-          "image": { "src": "/beobservant.png", "alt": "Control Plane diagram" },
+          "image": { "src": "/watchdog.png", "alt": "Control Plane diagram" },
           "bullets": [
             "Federated query engine: one search pulls correlated data from Loki, Tempo, and Mimir simultaneously, scoped to the active API key.",
             "Grafana is never exposed directly—all traffic flows through an RBAC-enforced NGINX proxy layer.",
@@ -112,13 +112,13 @@
       ]
     },
     {
-      "kicker": "AIOps — Be Certain",
+      "kicker": "AIOps — Resolver",
       "title": "Root cause analysis that doesn't ask you to guess.",
       "type": "services",
       "services": [
         {
-          "name": "Be Certain",
-          "image": { "src": "/becertain.png", "alt": "Be Certain diagram" },
+          "name": "Resolver AI Engine",
+          "image": { "src": "/resolver.png", "alt": "Resolver diagram" },
           "tagline": "An autonomous RCA engine that ranks hypotheses with evidence links—not a dashboard you still have to read.",
           "bullets": [
             "Asynchronous RCA jobs analyze anomaly groups, topology blast radius, and causal chains across all three data planes.",
@@ -132,14 +132,14 @@
       ]
     },
     {
-      "kicker": "Alert Intelligence — Be Notified",
+      "kicker": "Alert Intelligence — Notifier",
       "title": "Alertmanager with a brain and an incident board.",
       "type": "services",
       "services": [
         {
-          "name": "Be Notified",
-          "tagline": "Built on Alertmanager, BeNotified handles complex routing, Slack/Jira syncing, and collaborative incident management—ensuring the right team gets the right context at the right time.",
-          "image": { "src": "/benotified.png", "alt": "BeNotified diagram" },
+          "name": "Notifier Engine",
+          "tagline": "Built on Alertmanager, Notifier handles complex routing, Slack/Jira syncing, and collaborative incident management—ensuring the right team gets the right context at the right time.",
+          "image": { "src": "/notifier.png", "alt": "Notifier diagram" },
           "bullets": [
             "Ingests alerts from Grafana Alertmanager and routes to Slack, Jira, PagerDuty, Teams, or email with full context.",
             "InOps board: collaborative incident management with task assignment, timeline tracking, and resolution workflows.",
@@ -158,11 +158,11 @@
       "services": [
         {
           "name": "Grafana Proxy",
-          "tagline": "NGINX + Be Observant auth gate that enforces route-level permissions before traffic reaches Grafana.",
+          "tagline": "NGINX + Watchdog auth gate that enforces route-level permissions before traffic reaches Grafana.",
           "image": { "src": "/grafana.png", "alt": "Grafana Proxy diagram" },
           "bullets": [
             "Every sensitive `/grafana/*` request is authorized via `/api/grafana/auth` using token/cookie context.",
-            "Launch flow uses `/api/grafana/bootstrap-session` to set a secure `beobservant_token` cookie for proxied Grafana access.",
+            "Launch flow uses `/api/grafana/bootstrap-session` to set a secure `watchdog_token` cookie for proxied Grafana access.",
             "Path + method RBAC checks are enforced for dashboards, datasources, folders, and query routes.",
             "Public dashboard links and snapshot endpoints are blocked by policy to prevent bypassing access controls.",
             "Prometheus/Loki/Tempo datasource access is tenant-scoped (`X-Scope-OrgID`), while default/read-only datasources remain query-only."
@@ -176,15 +176,15 @@
       "title": "What's the Goal?",
       "type": "table",
       "table": {
-        "columns": ["Feature", "Grafana OSS", "Grafana Enterprise", "Be Observant"],
+        "columns": ["Feature", "Grafana OSS", "Grafana Enterprise", "Watchdog"],
         "rows": [
           ["Advanced RBAC / Route Permissions", "❌ None", "✅ Paid", "✅ Free"],
           ["OIDC / SAML / MFA", "⚠️ Partial / Manual", "✅ Paid", "✅ Native (Keycloak)"],
           ["Immutable Audit Logging", "❌ None", "✅ Paid", "✅ Free"],
           ["Hardened OTLP Ingest Proxy", "❌ DIY", "⚠️ Partial", "✅ Built-in"],
           ["Multi-Tenant Key Isolation", "❌ None", "⚠️ Limited", "✅ KBAC (Free)"],
-          ["Automated RCA Engine", "❌ Manual", "⚠️ Limited", "✅ BeCertain AI"],
-          ["Incident Orchestration Board", "⚠️ Basic Alerting", "✅ Paid", "✅ BeNotified (Free)"],
+          ["Automated RCA Engine", "❌ Manual", "⚠️ Limited", "✅ Resolver AI"],
+          ["Incident Orchestration Board", "⚠️ Basic Alerting", "✅ Paid", "✅ Notifier (Free)"],
           ["Data Retention Limits", "None (self-hosted)", "Contractual", "None (self-hosted)"],
           ["Minimum License Cost", "$0", "$25,000+/yr", "$0"]
         ]
@@ -196,16 +196,16 @@
       "subtitle": "Goal: make production observability secure by default, easy to operate, and fast to investigate. We are currently in Beta, and we want to build this into a production-grade platform with your feedback and help.",
       "type": "code",
       "codeLabel": "Beta today -> production-grade tomorrow (with your help)",
-      "code": "# End goal: deploy the full stack with a secure control plane\n# Current status: Beta (actively evolving based on user feedback)\n\n# Spin up Be Observant + the full LGTM stack\ncurl -fsSL https://raw.githubusercontent.com/observantio/beobservant/main/install.py -o /tmp/install.py\npython3 /tmp/install.py\n\n# What we're trying to achieve in production:\n#   JWT asymmetric signing (RS256/ES256)\n#   Keycloak OIDC with MFA enforcement\n#   Rate-limited, token-validated OTLP gateway\n#   RBAC-enforced Grafana proxy (NGINX)\n\n# Trigger an AI RCA job via the control plane:\ncurl -X POST http://localhost:4319/api/rca/jobs \\\n# Help shape this Beta:\n#   Report issues, request features, and share production requirements.",
+      "code": "# End goal: deploy the full stack with a secure control plane\n# Current status: Beta (actively evolving based on user feedback)\n\n# Spin up Watchdog + the full LGTM stack\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py\npython3 /tmp/install.py\n\n# What we're trying to achieve in production:\n#   JWT asymmetric signing (RS256/ES256)\n#   Keycloak OIDC with MFA enforcement\n#   Rate-limited, token-validated OTLP gateway\n#   RBAC-enforced Grafana proxy (NGINX)\n\n# Trigger an AI RCA job via the control plane:\ncurl -X POST http://localhost:4319/api/rca/jobs \\\n# Help shape this Beta:\n#   Report issues, request features, and share production requirements.",
       "links": [
         {
           "label": "Read Deployment Guide",
-          "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+          "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
           "description": "Step-by-step setup, first login, key management, and troubleshooting."
         },
         {
           "label": "Explore the Repository",
-          "href": "https://github.com/observantio/beobservant",
+          "href": "https://github.com/observantio/watchdog",
           "description": "Architecture, services, and source code."
         }
       ]
@@ -214,11 +214,11 @@
   "use": [
     {
       "kicker": "Beta — Active Project",
-      "title": "Be Observant is in active development. Built for experimentation and homelab use.",
+      "title": "Watchdog is in active development. Built for experimentation and homelab use.",
       "subtitle": "The project is currently in beta. It is not yet hardened for production deployments—there is a single docker-compose and the focus right now is on features, stability, and feedback. If you hit something broken, open an issue.",
       "type": "bullets",
       "bullets": [
-        "One docker-compose spins up the full stack: Be Observant, BeCertain, BeNotified, Loki, Mimir, Tempo, Grafana, and the OTLP gateway.",
+        "One docker-compose spins up the full stack: Watchdog, Resolver, Notifier, Loki, Mimir, Tempo, Grafana, and the OTLP gateway.",
         "Intended for local testing, homelab use, and experimentation—not production traffic.",
         "The installer handles environment bootstrapping and prompts for credentials. Min 16-character password enforced.",
         "Four ports need to be free: 5173 (UI), 8080 (Grafana Proxy), 4319 (Control Plane API), 4320 (OTLP Gateway).",
@@ -227,7 +227,7 @@
       "links": [
         {
           "label": "Report an Issue",
-          "href": "https://github.com/observantio/beobservant/issues",
+          "href": "https://github.com/observantio/watchdog/issues",
           "description": "Found a bug or deployment problem? Open an issue."
         }
       ]
@@ -237,7 +237,7 @@
       "title": "Up and running in under 5 minutes.",
       "type": "code",
       "codeLabel": "Two ways to start — pick one",
-      "code": "# Option A: curl installer (quickest)\n# Prompts for a username and password (min 16 chars)\ncurl -fsSL https://raw.githubusercontent.com/observantio/beobservant/main/install.py -o /tmp/install.py\npython3 /tmp/install.py\n\n# Option B: clone and run manually\ngit clone https://github.com/observantio/beobservant Observantio && cd Observantio\ngit clone https://github.com/observantio/becertain BeCertain\ngit clone https://github.com/observantio/benotified BeNotified\n\ncp .env.example .env\n\n# Generate your Fernet encryption key and set it as DATA_ENCRYPTION_KEY in .env\npython3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"\n\ndocker compose up -d --build\n\n# Verify everything is up\ndocker compose ps\ncurl http://localhost:4319/ready"
+      "code": "# Option A: curl installer (quickest)\n# Prompts for a username and password (min 16 chars)\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py\npython3 /tmp/install.py\n\n# Option B: clone and run manually\ngit clone https://github.com/observantio/watchdog Observantio && cd Observantio\ngit clone https://github.com/observantio/resolver Resolver\ngit clone https://github.com/observantio/notifier Notifier\n\ncp .env.example .env\n\n# Generate your Fernet encryption key and set it as DATA_ENCRYPTION_KEY in .env\npython3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"\n\ndocker compose up -d --build\n\n# Verify everything is up\ndocker compose ps\ncurl http://localhost:4319/ready"
     },
     {
       "kicker": "Access the Platform",
@@ -289,9 +289,9 @@
       ]
     },
     {
-      "kicker": "Investigating with BeCertain",
+      "kicker": "Investigating with Resolver",
       "title": "Trigger an RCA job when something goes wrong.",
-      "subtitle": "BeCertain runs asynchronous analysis across your metrics, logs, and traces. Don't run it on empty data—a meaningful dataset is required to reduce false positive hypotheses.",
+      "subtitle": "Resolver runs asynchronous analysis across your metrics, logs, and traces. Don't run it on empty data—a meaningful dataset is required to reduce false positive hypotheses.",
       "type": "workflow",
       "workflowSteps": [
         {
@@ -300,7 +300,7 @@
         },
         {
           "label": "Trigger the analysis job",
-          "detail": "Submit the job. BeCertain asynchronously queries Loki, Tempo, and Mimir, running Z-score anomaly detection and causal chain analysis across all three planes."
+          "detail": "Submit the job. Resolver asynchronously queries Loki, Tempo, and Mimir, running Z-score anomaly detection and causal chain analysis across all three planes."
         },
         {
           "label": "Review ranked hypotheses",
@@ -319,7 +319,7 @@
       "workflowSteps": [
         {
           "label": "Alerts populate the InOps board automatically",
-          "detail": "Alerts from Grafana Alertmanager are ingested by BeNotified and routed to the InOps board. Routing rules, ownership, and channel config are managed per org."
+          "detail": "Alerts from Grafana Alertmanager are ingested by Notifier and routed to the InOps board. Routing rules, ownership, and channel config are managed per org."
         },
         {
           "label": "Assign and collaborate",
@@ -327,26 +327,26 @@
         },
         {
           "label": "Route notifications",
-          "detail": "Configure channels (Slack, Jira, PagerDuty, Teams, Email) in BeNotified settings. Channel configs are encrypted and scoped to their owner."
+          "detail": "Configure channels (Slack, Jira, PagerDuty, Teams, Email) in Notifier settings. Channel configs are encrypted and scoped to their owner."
         },
         {
           "label": "Close with a resolution note",
-          "detail": "Closing an incident requires a resolution note. This is mandatory—it seeds the long-term knowledge base that BeCertain uses for future RCA context."
+          "detail": "Closing an incident requires a resolution note. This is mandatory—it seeds the long-term knowledge base that Resolver uses for future RCA context."
         }
       ]
     },
     {
       "kicker": "Workflow Summary",
-      "title": "What changes when your team has Be Observant.",
+      "title": "What changes when your team has Watchdog.",
       "type": "table",
       "table": {
-        "columns": ["During incident", "Without Be Observant", "With Be Observant"],
+        "columns": ["During incident", "Without Watchdog", "With Watchdog"],
         "rows": [
           ["First 5 minutes", "Open 3–5 tools, hunt for context manually", "Trigger RCA, get ranked hypotheses + evidence links"],
           ["Evidence gathering", "Manual query loops across log explorer, traces, metrics", "Evidence auto-attached: log lines, spans, metric spikes"],
           ["Team coordination", "Long Slack backscroll, lost context", "Report posted to InOps board with full timeline"],
-          ["Notification routing", "Manual PagerDuty/Jira wiring per team", "BeNotified routes by org ownership and severity"],
-          ["Next actions", "Tribal knowledge and guesswork", "Suggested actions + blast radius from BeCertain"],
+          ["Notification routing", "Manual PagerDuty/Jira wiring per team", "Notifier routes by org ownership and severity"],
+          ["Next actions", "Tribal knowledge and guesswork", "Suggested actions + blast radius from Resolver"],
           ["Post-incident", "Retro doc in a Google Doc nobody reads", "Resolution note required—feeds knowledge base"]
         ]
       }
@@ -361,7 +361,7 @@
           ["403 Forbidden on API", "Tenant scope mismatch or expired API key", "Check active key in top nav; verify key hasn't expired in Key Management"],
           ["403 on Grafana Proxy (8080)", "No valid UI session token", "Log in via 5173 first; the proxy requires a session token from the control plane"],
           ["No data in Grafana", "Wrong datasource URL or key mismatch", "curl http://localhost:4319/ready; verify datasource uses proxied URL + correct API key"],
-          ["RCA job hangs", "BeCertain service unreachable or token mismatch", "docker compose ps; check BeCertain logs; verify token scope matches the data plane"],
+          ["RCA job hangs", "Resolver service unreachable or token mismatch", "docker compose ps; check Resolver logs; verify token scope matches the data plane"],
           ["OTLP data not arriving", "Gateway rejecting token", "Check x-otlp-token header in collector config; verify token exists and is active in Key Management"],
           ["ALLOWLIST 403 (fail-closed)", "IP not in allowlist, ALLOWLIST_FAIL_OPEN=false", "Add your IP to the relevant allowlist env var or set ALLOWLIST_FAIL_OPEN=true temporarily"]
         ]
@@ -369,7 +369,7 @@
     },
     {
       "kicker": "Next Step",
-      "title": "You're ready to run and improve Be Observant.",
+      "title": "You're ready to run and improve Watchdog.",
       "subtitle": "Use this stack locally, validate your flows, and help shape the roadmap.",
       "type": "bullets",
       "bullets": [
@@ -380,22 +380,22 @@
       "links": [
         {
           "label": "Star the Repo",
-          "href": "https://github.com/observantio/beobservant",
+          "href": "https://github.com/observantio/watchdog",
           "description": "Support the project and follow updates."
         },
         {
           "label": "Open Issues / Feature Requests",
-          "href": "https://github.com/observantio/beobservant/issues",
+          "href": "https://github.com/observantio/watchdog/issues",
           "description": "Share bugs, ideas, and deployment feedback."
         },
         {
           "label": "Read the User Guide",
-          "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+          "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
           "description": "Detailed operator workflows and hardening guidance."
         },
         {
           "label": "Project README",
-          "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+          "href": "https://github.com/observantio/watchdog/blob/main/README.md",
           "description": "High-level architecture and quick start."
         }
       ]

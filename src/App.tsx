@@ -26,11 +26,11 @@ const DOCS_GLOW = "rgba(20,184,166,0.18)";
 const DOC_LINKS = [
   {
     label: "Full User Guide",
-    href: "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+    href: "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
   },
   {
     label: "Architecture README",
-    href: "https://github.com/observantio/beobservant/blob/main/README.md",
+    href: "https://github.com/observantio/watchdog/blob/main/README.md",
   },
 ];
 
@@ -268,7 +268,7 @@ function renderContent(slide: SlideData, accent: string) {
             <thead>
               <tr className="border-b" style={{ borderColor: accent + "25", backgroundColor: accent + "10" }}>
                 <th className="py-3 px-4 text-left font-mono text-xs uppercase tracking-wider text-retro-dim">Feature</th>
-                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider" style={{ color: accent }}>BeObservant</th>
+                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider" style={{ color: accent }}>Watchdog</th>
                 <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">Datadog</th>
                 <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">Grafana</th>
               </tr>
@@ -414,7 +414,7 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(
-      "curl -fsSL https://raw.githubusercontent.com/observantio/beobservant/main/install.py -o /tmp/install.py && python3 /tmp/install.py"
+      "curl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py && python3 /tmp/install.py"
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -435,7 +435,7 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
       >
         <div className="flex items-center justify-center gap-2 mb-6">
           <Sparkles className="h-5 w-5 text-retro-glow" />
-          <span className="text-xs font-mono uppercase tracking-[0.25em] text-retro-dim">BeObservant</span>
+          <span className="text-xs font-mono uppercase tracking-[0.25em] text-retro-dim">Watchdog</span>
         </div>
 
         <h1 className="text-3xl sm:text-6xl font-bold tracking-tight mb-4">Choose your path</h1>
@@ -467,7 +467,7 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
               </div>
             </div>
             <p className="text-sm text-zinc-300 leading-relaxed mb-4">
-              What is the purpose of BeObservant? How does it work? Why is it different? For thinkers.
+              What is the purpose of Watchdog? How does it work? Why is it different? For thinkers.
             </p>
             <div className="flex flex-wrap gap-1.5">
               {["Architecture", "Core Services"].map(t => (
@@ -516,7 +516,7 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
         <div className="mt-8 flex flex-col items-center">
           <div className="relative w-full">
             <pre className="rounded-2xl bg-zinc-950 px-4 sm:px-5 py-3 font-mono text-[11px] sm:text-xs text-zinc-200 border border-zinc-800 overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
-              <code>curl -fsSL https://raw.githubusercontent.com/observantio/beobservant/main/install.py -o /tmp/install.py && python3 /tmp/install.py</code>
+              <code>curl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py && python3 /tmp/install.py</code>
             </pre>
             <button
               onClick={handleCopy}
@@ -530,7 +530,7 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
             )}
           </div>
           <p className="mt-2 text-xs text-retro-dim">
-            Run the command above to spin up Be Observant and the full LGTM stack locally. Great for exploring the UI and features without any commitment.
+            Run the command above to spin up Watchdog and the full LGTM stack locally. Great for exploring the UI and features without any commitment.
           </p>
           <div className="mt-4 flex w-full flex-col items-center gap-3">
             <button
@@ -760,7 +760,7 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
 
         <div className="rounded-3xl border overflow-hidden bg-zinc-950/95 backdrop-blur-sm" style={{ borderColor: accent + "40", boxShadow: `0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px ${accent}20` }}>
           <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b" style={{ borderColor: accent + "25", backgroundColor: accent + "08" }}>
-            <span className="text-xs font-mono text-retro-dim">BEOBSERVANT / {docTitle}</span>
+            <span className="text-xs font-mono text-retro-dim">WATCHDOG / {docTitle}</span>
             <div className="flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-retro-dim" />
               <span className="text-xs font-mono text-retro-dim">{docTitle}</span>
@@ -945,7 +945,7 @@ export default function App() {
               <Sparkles className="h-5 w-5" style={{ color: accent }} />
             </div>
             <div>
-              <div className="text-xs font-mono uppercase tracking-wider text-retro-dim">BeObservant</div>
+              <div className="text-xs font-mono uppercase tracking-wider text-retro-dim">Watchdog</div>
               <div className="text-sm font-semibold" style={{ color: accent }}>{pathLabel}</div>
             </div>
           </div>

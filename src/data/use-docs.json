@@ -15,12 +15,12 @@
     "links": [
       {
         "label": "User Guide",
-        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
         "description": "Canonical deployment and operator walkthrough."
       },
       {
         "label": "README",
-        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/README.md",
         "description": "Architecture, quick start, and stack overview."
       }
     ]
@@ -36,10 +36,10 @@
         ["Runtime", "Docker with docker compose", "The local reference deployment is composed of many coordinated services, not one binary."],
         ["Bootstrap tooling", "Git and Python 3", "Needed for the installer path and for manual repository setup."],
         ["Primary UI", "5173", "Main browser entry point for operators and the place where sessions begin."],
-        ["Control plane API", "4319", "Main BeObservant API, docs, health, readiness, and proxy surface."],
+        ["Control plane API", "4319", "Main Watchdog API, docs, health, readiness, and proxy surface."],
         ["OTLP gateway", "4320", "Only ingress endpoint collectors need to reach for logs, traces, and metrics."],
         ["Gateway auth", "4321", "Ext_authz service used by Envoy to validate OTLP requests."],
-        ["BeCertain / BeNotified", "4322 / 4323", "RCA and alerting services that must be healthy for their product areas to function."],
+        ["Resolver / Notifier", "4322 / 4323", "RCA and alerting services that must be healthy for their product areas to function."],
         ["Grafana proxy", "8080", "Browser-facing Grafana path that depends on an authenticated session created via the UI."]
       ]
     }
@@ -58,7 +58,7 @@
         ["Encryption and signing", "DATA_ENCRYPTION_KEY and service tokens", "Replace placeholders with strong unique values so service-to-service auth and secrets are not weak by default."],
         ["OTLP ingest", "DEFAULT_OTLP_TOKEN, allowlist, rate limit, cache", "This is what makes collector traffic both functional and bounded."],
         ["Grafana", "GF_* and proxy-related values", "The Grafana root URL and auth-proxy layout need to match the proxied browser path."],
-        ["BeCertain tuning", "quality gating and threshold values", "Start with defaults until you have enough real telemetry to tune signal quality intelligently."],
+        ["Resolver tuning", "quality gating and threshold values", "Start with defaults until you have enough real telemetry to tune signal quality intelligently."],
         ["Proxy and cookie security", "CORS, secure cookies, trusted proxy headers", "Revisit these before wider rollout so browser and reverse-proxy behavior stays correct."]
       ]
     }
@@ -79,7 +79,7 @@
       },
       {
         "label": "Open the UI first",
-        "detail": "Log in at http://localhost:5173 before attempting Grafana access, because the Grafana proxy relies on a BeObservant-created browser session."
+        "detail": "Log in at http://localhost:5173 before attempting Grafana access, because the Grafana proxy relies on a Watchdog-created browser session."
       },
       {
         "label": "Create or confirm the working API key",
@@ -167,7 +167,7 @@
       },
       {
         "label": "Create a job for a recent problem window",
-        "detail": "Use the RCA page to choose the correct scope, service, and time range before submitting the job to BeCertain."
+        "detail": "Use the RCA page to choose the correct scope, service, and time range before submitting the job to Resolver."
       },
       {
         "label": "Read the report in order",
@@ -207,7 +207,7 @@
         ["Login fails", "Bootstrap admin or auth mode mismatch", "Check .env auth provider values and the admin credentials created at install time."],
         ["Grafana returns 401 or behaves oddly", "Bypassed authenticated launch path or proxy/root URL mismatch", "Open Grafana from the UI first and verify Grafana proxy settings."],
         ["No logs or traces arrive", "Wrong OTLP token or wrong gateway endpoint", "Check x-otlp-token, collector exporter URLs, and gateway validation behavior."],
-        ["Ready stays unhealthy", "A downstream dependency is still not ready", "Use docker compose ps and the BeObservant ready payload to identify the lagging service."],
+        ["Ready stays unhealthy", "A downstream dependency is still not ready", "Use docker compose ps and the Watchdog ready payload to identify the lagging service."],
         ["Data appears under the wrong tenant", "Wrong active API key or shared-key confusion", "Return to API Keys and confirm the selected default and target scope."],
         ["Rules exist but nothing fires", "Scope mismatch, expression issue, or missing metrics", "Check rule target, metric presence, and whether the dataset actually contains the signal."],
         ["RCA finishes with weak output", "Not enough cross-signal activity in the chosen time window", "Increase the time range or wait for richer logs, traces, and metrics before expecting strong corroboration."],
@@ -229,17 +229,17 @@
     "links": [
       {
         "label": "Open README",
-        "href": "https://github.com/observantio/beobservant/blob/main/README.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/README.md",
         "description": "Architecture and full stack overview."
       },
       {
         "label": "Open USER_GUIDE",
-        "href": "https://github.com/observantio/beobservant/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
         "description": "Deployment, UI, alerting, RCA, and hardening guide."
       },
       {
         "label": "Browse Repository",
-        "href": "https://github.com/observantio/beobservant",
+        "href": "https://github.com/observantio/watchdog",
         "description": "Source code, folders, and issues."
       }
     ]
