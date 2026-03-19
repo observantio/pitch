@@ -26,7 +26,7 @@ const DOCS_GLOW = "rgba(20,184,166,0.18)";
 const DOC_LINKS = [
   {
     label: "Full User Guide",
-    href: "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+    href: "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
   },
   {
     label: "Architecture README",
