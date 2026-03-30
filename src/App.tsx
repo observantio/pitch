@@ -14,7 +14,8 @@ import {
 import { slidesJson } from "./data/slideData";
 import type { Path, SlideData } from "./data/slideTypes";
 
-const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
 
 const BLUE = "#3b82f6";
 const RED = "#ef4444";
@@ -33,6 +34,41 @@ const DOC_LINKS = [
     href: "https://github.com/observantio/watchdog/blob/main/README.md",
   },
 ];
+const WATCHDOG_DEPLOYMENT_GUIDE_URL =
+  "https://github.com/observantio/watchdog/blob/main/DEPLOYMENT.md";
+const OJO_DEPLOYMENT_GUIDE_URL =
+  "https://github.com/observantio/ojo/blob/main/DEPLOYMENT.md";
+const STACK_RELEASE_TAG = "v0.0.2";
+const WATCHDOG_RELEASE_URL = `https://github.com/observantio/watchdog/releases/tag/${STACK_RELEASE_TAG}`;
+const OJO_RELEASE_TAG = "v0.0.2";
+const OJO_RELEASE_URL = `https://github.com/observantio/ojo/releases/tag/${OJO_RELEASE_TAG}`;
+type InstallerTab = "stack" | "linux" | "windows";
+const INSTALL_TABS: Array<{ key: InstallerTab; label: string }> = [
+  { key: "stack", label: `Stack ${STACK_RELEASE_TAG}` },
+  { key: "linux", label: `Ojo Linux ${OJO_RELEASE_TAG}` },
+  { key: "windows", label: `Ojo Windows ${OJO_RELEASE_TAG}` },
+];
+const INSTALL_COMMANDS: Record<InstallerTab, string> = {
+  stack: `VERSION="${STACK_RELEASE_TAG}"
+ARCH="multi" # amd64 | arm64 | multi
+REPO="observantio/watchdog"
+ASSET="observantio-${STACK_RELEASE_TAG}-linux-\${ARCH}.tar.gz"
+URL="https://github.com/\${REPO}/releases/download/${STACK_RELEASE_TAG}/\${ASSET}"
+
+mkdir -p "$HOME/observantio" && cd "$HOME/observantio"
+curl -fL -o "\${ASSET}" "\${URL}"
+tar -xzf "\${ASSET}"
+cd "observantio-${STACK_RELEASE_TAG}-linux-\${ARCH}"
+chmod +x install.sh 2>/dev/null || true
+chmod +x ./release/install.sh 2>/dev/null || true
+./install.sh || ./release/install.sh`,
+  linux: `curl -L https://github.com/observantio/ojo/releases/download/${OJO_RELEASE_TAG}/ojo-${OJO_RELEASE_TAG}-linux-x86_64 -o ojo
+chmod +x ojo
+sudo mv ojo /usr/local/bin/ojo
+ojo --config linux.yaml`,
+  windows: `Invoke-WebRequest https://github.com/observantio/ojo/releases/download/${OJO_RELEASE_TAG}/ojo-${OJO_RELEASE_TAG}-windows-x86_64.exe -OutFile .\\ojo.exe
+.\\ojo.exe --config windows.yaml`,
+};
 
 function withBaseUrl(src: string) {
   if (!src) return src;
@@ -42,7 +78,9 @@ function withBaseUrl(src: string) {
   return `${base.replace(/\/$/, "")}/${src.replace(/^\//, "")}`;
 }
 
-function findHorizontalScrollContainer(node: EventTarget | null): HTMLElement | null {
+function findHorizontalScrollContainer(
+  node: EventTarget | null,
+): HTMLElement | null {
   if (!(node instanceof HTMLElement)) return null;
   let current: HTMLElement | null = node;
   while (current) {
@@ -71,10 +109,91 @@ function pathGlow(path: Path) {
 function Tick({ accent }: { accent: string }) {
   return (
     <div className="pointer-events-none absolute inset-0 opacity-35">
-      <div className="absolute left-4 top-4 h-3 w-3 border-l border-t" style={{ borderColor: accent + "60" }} />
-      <div className="absolute right-4 top-4 h-3 w-3 border-r border-t" style={{ borderColor: accent + "60" }} />
-      <div className="absolute left-4 bottom-4 h-3 w-3 border-l border-b" style={{ borderColor: accent + "60" }} />
-      <div className="absolute right-4 bottom-4 h-3 w-3 border-r border-b" style={{ borderColor: accent + "60" }} />
+      <div
+        className="absolute left-4 top-4 h-3 w-3 border-l border-t"
+        style={{ borderColor: accent + "60" }}
+      />
+      <div
+        className="absolute right-4 top-4 h-3 w-3 border-r border-t"
+        style={{ borderColor: accent + "60" }}
+      />
+      <div
+        className="absolute left-4 bottom-4 h-3 w-3 border-l border-b"
+        style={{ borderColor: accent + "60" }}
+      />
+      <div
+        className="absolute right-4 bottom-4 h-3 w-3 border-r border-b"
+        style={{ borderColor: accent + "60" }}
+      />
+    </div>
+  );
+}
+
+function renderCommandLine(line: string) {
+  const trimmed = line.trim();
+  if (!trimmed) return <span className="text-zinc-500"> </span>;
+
+  if (trimmed.startsWith("#")) {
+    return <span className="text-zinc-500 italic">{line}</span>;
+  }
+
+  const assignMatch = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+  if (assignMatch) {
+    const [, key, value] = assignMatch;
+    return (
+      <>
+        <span className="text-sky-300">{key}</span>
+        <span className="text-zinc-400">=</span>
+        <span className="text-amber-300">{value}</span>
+      </>
+    );
+  }
+
+  const commandMatch = line.match(/^(\s*)([a-zA-Z0-9_.-]+)(.*)$/);
+  if (!commandMatch) return <span className="text-zinc-200">{line}</span>;
+
+  const [, indent, cmd, rest] = commandMatch;
+  return (
+    <>
+      <span className="text-zinc-500">{indent}</span>
+      <span className="text-emerald-300">{cmd}</span>
+      <span className="text-zinc-200">{rest}</span>
+    </>
+  );
+}
+
+function IdeCodeBlock({ code, accent }: { code: string; accent: string }) {
+  const lines = code.split("\n");
+  return (
+    <div
+      className="relative w-full rounded-2xl border p-1 text-left"
+      style={{ borderColor: accent + "45", boxShadow: `0 0 18px ${accent}33` }}
+    >
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden">
+        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-zinc-800 bg-black/30">
+          <div className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+          <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
+          <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
+          <span className="ml-2 text-[11px] font-mono text-zinc-500">
+            install.sh
+          </span>
+        </div>
+        <pre className="px-3 sm:px-4 py-3 text-left font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
+          <code>
+            {lines.map((line, idx) => (
+              <div
+                key={`${idx}-${line}`}
+                className="grid grid-cols-[2.4rem_1fr] sm:grid-cols-[2.9rem_1fr] gap-3"
+              >
+                <span className="select-none pr-1 text-right tabular-nums text-zinc-600">
+                  {idx + 1}
+                </span>
+                <span>{renderCommandLine(line)}</span>
+              </div>
+            ))}
+          </code>
+        </pre>
+      </div>
     </div>
   );
 }
@@ -83,7 +202,11 @@ function Tag({ label, accent }: { label: string; accent: string }) {
   return (
     <span
       className="inline-block rounded px-2 py-0.5 text-xs font-mono"
-      style={{ backgroundColor: accent + "18", border: `1px solid ${accent}40`, color: accent }}
+      style={{
+        backgroundColor: accent + "18",
+        border: `1px solid ${accent}40`,
+        color: accent,
+      }}
     >
       {label}
     </span>
@@ -91,7 +214,12 @@ function Tag({ label, accent }: { label: string; accent: string }) {
 }
 
 function BoolCell({ val, accent }: { val: boolean | string; accent: string }) {
-  if (val === true) return <span style={{ color: accent }} className="text-lg">✓</span>;
+  if (val === true)
+    return (
+      <span style={{ color: accent }} className="text-lg">
+        ✓
+      </span>
+    );
   if (val === false) return <span className="text-retro-dim text-lg">✗</span>;
   return <span className="text-xs text-zinc-400">{val}</span>;
 }
@@ -101,10 +229,18 @@ function GenericTable({ slide, accent }: { slide: SlideData; accent: string }) {
   if (!t) return null;
 
   return (
-    <div className="mt-6 overflow-x-auto rounded-2xl border" style={{ borderColor: accent + "35" }}>
+    <div
+      className="mt-6 overflow-x-auto rounded-2xl border"
+      style={{ borderColor: accent + "35" }}
+    >
       <table className="w-full min-w-[640px] text-sm">
         <thead>
-          <tr style={{ backgroundColor: accent + "10", borderBottom: `1px solid ${accent}25` }}>
+          <tr
+            style={{
+              backgroundColor: accent + "10",
+              borderBottom: `1px solid ${accent}25`,
+            }}
+          >
             {t.columns.map((c, i) => (
               <th
                 key={i}
@@ -118,10 +254,23 @@ function GenericTable({ slide, accent }: { slide: SlideData; accent: string }) {
         </thead>
         <tbody>
           {t.rows.map((row, ri) => (
-            <tr key={ri} style={{ borderBottom: ri < t.rows.length - 1 ? `1px solid ${accent}15` : "none" }}>
+            <tr
+              key={ri}
+              style={{
+                borderBottom:
+                  ri < t.rows.length - 1 ? `1px solid ${accent}15` : "none",
+              }}
+            >
               {row.map((cell, ci) => (
-                <td key={ci} className={`py-2.5 px-4 ${ci === 0 ? "text-zinc-200" : "text-zinc-300"}`}>
-                  {typeof cell === "boolean" ? <BoolCell val={cell} accent={accent} /> : cell}
+                <td
+                  key={ci}
+                  className={`py-2.5 px-4 ${ci === 0 ? "text-zinc-200" : "text-zinc-300"}`}
+                >
+                  {typeof cell === "boolean" ? (
+                    <BoolCell val={cell} accent={accent} />
+                  ) : (
+                    cell
+                  )}
                 </td>
               ))}
             </tr>
@@ -135,7 +284,10 @@ function GenericTable({ slide, accent }: { slide: SlideData; accent: string }) {
 function SlideImage({ slide, accent }: { slide: SlideData; accent: string }) {
   if (!slide.image) return null;
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border" style={{ borderColor: accent + "35" }}>
+    <div
+      className="mt-6 overflow-hidden rounded-2xl border"
+      style={{ borderColor: accent + "35" }}
+    >
       <div className="bg-black/40">
         <img
           src={withBaseUrl(slide.image.src)}
@@ -152,13 +304,24 @@ function SlideGallery({ slide, accent }: { slide: SlideData; accent: string }) {
   return (
     <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
       {slide.gallery.map((g, i) => (
-        <div key={i} className="overflow-hidden rounded-2xl border bg-black/30" style={{ borderColor: accent + "35" }}>
+        <div
+          key={i}
+          className="overflow-hidden rounded-2xl border bg-black/30"
+          style={{ borderColor: accent + "35" }}
+        >
           <img
             src={withBaseUrl(g.src)}
             alt={g.alt ?? `gallery ${i + 1}`}
             className="w-full h-[180px] sm:h-[200px] object-cover"
           />
-          {g.alt && <div className="px-3 py-2 text-xs text-zinc-400 font-mono border-t" style={{ borderColor: accent + "20" }}>{g.alt}</div>}
+          {g.alt && (
+            <div
+              className="px-3 py-2 text-xs text-zinc-400 font-mono border-t"
+              style={{ borderColor: accent + "20" }}
+            >
+              {g.alt}
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -204,8 +367,17 @@ function renderContent(slide: SlideData, accent: string) {
       return slide.bullets ? (
         <ul className="mt-6 space-y-3">
           {slide.bullets.map((b, i) => (
-            <li key={i} className="flex gap-3 text-base sm:text-lg leading-relaxed text-zinc-100/90">
-              <span className="mt-2.5 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ backgroundColor: accent, boxShadow: `0 0 8px ${accent}` }} />
+            <li
+              key={i}
+              className="flex gap-3 text-base sm:text-lg leading-relaxed text-zinc-100/90"
+            >
+              <span
+                className="mt-2.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                style={{
+                  backgroundColor: accent,
+                  boxShadow: `0 0 8px ${accent}`,
+                }}
+              />
               {b}
             </li>
           ))}
@@ -216,10 +388,23 @@ function renderContent(slide: SlideData, accent: string) {
       return (
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {slide.metrics?.map((m, i) => (
-            <div key={i} className="rounded-2xl border bg-retro-bg/40 p-5" style={{ borderColor: accent + "35" }}>
-              <div className="text-3xl sm:text-4xl font-bold font-mono" style={{ color: accent }}>{m.value}</div>
-              <div className="mt-1 text-sm font-semibold text-zinc-100">{m.label}</div>
-              {m.sub && <div className="mt-1 text-xs text-retro-dim">{m.sub}</div>}
+            <div
+              key={i}
+              className="rounded-2xl border bg-retro-bg/40 p-5"
+              style={{ borderColor: accent + "35" }}
+            >
+              <div
+                className="text-3xl sm:text-4xl font-bold font-mono"
+                style={{ color: accent }}
+              >
+                {m.value}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-zinc-100">
+                {m.label}
+              </div>
+              {m.sub && (
+                <div className="mt-1 text-xs text-retro-dim">{m.sub}</div>
+              )}
             </div>
           ))}
         </div>
@@ -248,13 +433,18 @@ function renderContent(slide: SlideData, accent: string) {
               <ul className="space-y-2 mb-4">
                 {svc.bullets.map((b, j) => (
                   <li key={j} className="flex gap-2.5 text-sm text-zinc-200/90">
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ backgroundColor: accent }} />
+                    <span
+                      className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                      style={{ backgroundColor: accent }}
+                    />
                     {b}
                   </li>
                 ))}
               </ul>
               <div className="flex flex-wrap gap-2">
-                {svc.tags.map((t) => <Tag key={t} label={t} accent={accent} />)}
+                {svc.tags.map((t) => (
+                  <Tag key={t} label={t} accent={accent} />
+                ))}
               </div>
             </div>
           ))}
@@ -263,23 +453,55 @@ function renderContent(slide: SlideData, accent: string) {
 
     case "comparison":
       return (
-        <div className="mt-6 overflow-x-auto rounded-2xl border" style={{ borderColor: accent + "35" }}>
+        <div
+          className="mt-6 overflow-x-auto rounded-2xl border"
+          style={{ borderColor: accent + "35" }}
+        >
           <table className="w-full min-w-[640px] text-sm">
             <thead>
-              <tr className="border-b" style={{ borderColor: accent + "25", backgroundColor: accent + "10" }}>
-                <th className="py-3 px-4 text-left font-mono text-xs uppercase tracking-wider text-retro-dim">Feature</th>
-                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider" style={{ color: accent }}>Watchdog</th>
-                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">Datadog</th>
-                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">Grafana</th>
+              <tr
+                className="border-b"
+                style={{
+                  borderColor: accent + "25",
+                  backgroundColor: accent + "10",
+                }}
+              >
+                <th className="py-3 px-4 text-left font-mono text-xs uppercase tracking-wider text-retro-dim">
+                  Feature
+                </th>
+                <th
+                  className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider"
+                  style={{ color: accent }}
+                >
+                  Watchdog
+                </th>
+                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">
+                  Datadog
+                </th>
+                <th className="py-3 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">
+                  Grafana
+                </th>
               </tr>
             </thead>
             <tbody>
               {slide.comparison?.map((row, i) => (
-                <tr key={i} className="border-b last:border-0" style={{ borderColor: accent + "15" }}>
-                  <td className="py-3 px-4 text-zinc-200 text-xs sm:text-sm">{row.feature}</td>
-                  <td className="py-3 px-4 text-center"><BoolCell val={row.us} accent={accent} /></td>
-                  <td className="py-3 px-4 text-center"><BoolCell val={row.datadog} accent={accent} /></td>
-                  <td className="py-3 px-4 text-center"><BoolCell val={row.grafana} accent={accent} /></td>
+                <tr
+                  key={i}
+                  className="border-b last:border-0"
+                  style={{ borderColor: accent + "15" }}
+                >
+                  <td className="py-3 px-4 text-zinc-200 text-xs sm:text-sm">
+                    {row.feature}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <BoolCell val={row.us} accent={accent} />
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <BoolCell val={row.datadog} accent={accent} />
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <BoolCell val={row.grafana} accent={accent} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -293,17 +515,36 @@ function renderContent(slide: SlideData, accent: string) {
           {slide.archLayers?.map((layer, li) => (
             <div key={li} className="flex items-start gap-4">
               <div className="flex-shrink-0 w-24 pt-2.5 text-right">
-                <span className="text-xs font-mono uppercase tracking-wider text-retro-dim">{layer.label}</span>
+                <span className="text-xs font-mono uppercase tracking-wider text-retro-dim">
+                  {layer.label}
+                </span>
               </div>
               <div className="flex-shrink-0 pt-3">
-                <div className="h-3 w-3 rounded-full border-2" style={{ borderColor: accent, backgroundColor: accent + "30" }} />
+                <div
+                  className="h-3 w-3 rounded-full border-2"
+                  style={{
+                    borderColor: accent,
+                    backgroundColor: accent + "30",
+                  }}
+                />
                 {li < (slide.archLayers?.length ?? 0) - 1 && (
-                  <div className="ml-[5px] mt-1 h-8 w-px" style={{ backgroundColor: accent + "40" }} />
+                  <div
+                    className="ml-[5px] mt-1 h-8 w-px"
+                    style={{ backgroundColor: accent + "40" }}
+                  />
                 )}
               </div>
               <div className="flex flex-wrap gap-2 pb-2">
                 {layer.nodes.map((node) => (
-                  <div key={node} className="rounded-xl border px-3 py-1.5 text-xs font-mono" style={{ borderColor: accent + "40", backgroundColor: accent + "0D", color: "#d4d4d8" }}>
+                  <div
+                    key={node}
+                    className="rounded-xl border px-3 py-1.5 text-xs font-mono"
+                    style={{
+                      borderColor: accent + "40",
+                      backgroundColor: accent + "0D",
+                      color: "#d4d4d8",
+                    }}
+                  >
                     {node}
                   </div>
                 ))}
@@ -319,11 +560,19 @@ function renderContent(slide: SlideData, accent: string) {
           {slide.codeLabel && (
             <div className="mb-2 flex items-center gap-2">
               <Terminal className="h-3.5 w-3.5 text-retro-dim" />
-              <span className="text-xs font-mono text-retro-dim">{slide.codeLabel}</span>
+              <span className="text-xs font-mono text-retro-dim">
+                {slide.codeLabel}
+              </span>
             </div>
           )}
-          <div className="rounded-2xl border overflow-auto" style={{ borderColor: accent + "35", backgroundColor: "#0a0a0a" }}>
-            <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: accent + "25" }}>
+          <div
+            className="rounded-2xl border overflow-auto"
+            style={{ borderColor: accent + "35", backgroundColor: "#0a0a0a" }}
+          >
+            <div
+              className="flex items-center gap-1.5 px-4 py-3 border-b"
+              style={{ borderColor: accent + "25" }}
+            >
               <div className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
               <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
               <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
@@ -341,16 +590,30 @@ function renderContent(slide: SlideData, accent: string) {
           {slide.workflowSteps?.map((step, i) => (
             <div key={i} className="flex gap-4">
               <div className="flex flex-col items-center flex-shrink-0">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-mono font-bold" style={{ backgroundColor: accent + "20", border: `1.5px solid ${accent}`, color: accent }}>
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-mono font-bold"
+                  style={{
+                    backgroundColor: accent + "20",
+                    border: `1.5px solid ${accent}`,
+                    color: accent,
+                  }}
+                >
                   {i + 1}
                 </div>
                 {i < (slide.workflowSteps?.length ?? 0) - 1 && (
-                  <div className="mt-1 h-full w-px" style={{ backgroundColor: accent + "30" }} />
+                  <div
+                    className="mt-1 h-full w-px"
+                    style={{ backgroundColor: accent + "30" }}
+                  />
                 )}
               </div>
               <div className="pb-4">
-                <div className="font-semibold text-zinc-100 text-sm">{step.label}</div>
-                <div className="mt-1 text-sm text-zinc-400 leading-relaxed">{step.detail}</div>
+                <div className="font-semibold text-zinc-100 text-sm">
+                  {step.label}
+                </div>
+                <div className="mt-1 text-sm text-zinc-400 leading-relaxed">
+                  {step.detail}
+                </div>
               </div>
             </div>
           ))}
@@ -359,21 +622,53 @@ function renderContent(slide: SlideData, accent: string) {
 
     case "savings":
       return (
-        <div className="mt-6 overflow-x-auto rounded-2xl border" style={{ borderColor: accent + "35" }}>
+        <div
+          className="mt-6 overflow-x-auto rounded-2xl border"
+          style={{ borderColor: accent + "35" }}
+        >
           <table className="w-full min-w-[640px] text-sm">
             <thead>
-              <tr style={{ backgroundColor: accent + "10", borderBottom: `1px solid ${accent}25` }}>
-                <th className="py-2.5 px-4 text-left font-mono text-xs uppercase tracking-wider text-retro-dim">Metric</th>
-                <th className="py-2.5 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">Before</th>
-                <th className="py-2.5 px-4 text-center font-mono text-xs uppercase tracking-wider" style={{ color: accent }}>After / Saved</th>
+              <tr
+                style={{
+                  backgroundColor: accent + "10",
+                  borderBottom: `1px solid ${accent}25`,
+                }}
+              >
+                <th className="py-2.5 px-4 text-left font-mono text-xs uppercase tracking-wider text-retro-dim">
+                  Metric
+                </th>
+                <th className="py-2.5 px-4 text-center font-mono text-xs uppercase tracking-wider text-retro-dim">
+                  Before
+                </th>
+                <th
+                  className="py-2.5 px-4 text-center font-mono text-xs uppercase tracking-wider"
+                  style={{ color: accent }}
+                >
+                  After / Saved
+                </th>
               </tr>
             </thead>
             <tbody>
               {slide.savings?.map((row, i) => (
-                <tr key={i} style={{ borderBottom: i < (slide.savings?.length ?? 0) - 1 ? `1px solid ${accent}15` : "none" }}>
-                  <td className="py-2.5 px-4 text-xs text-zinc-300">{row.metric}</td>
-                  <td className="py-2.5 px-4 text-center text-xs text-zinc-400 font-mono">{row.before}</td>
-                  <td className="py-2.5 px-4 text-center text-xs font-mono font-semibold" style={{ color: accent }}>
+                <tr
+                  key={i}
+                  style={{
+                    borderBottom:
+                      i < (slide.savings?.length ?? 0) - 1
+                        ? `1px solid ${accent}15`
+                        : "none",
+                  }}
+                >
+                  <td className="py-2.5 px-4 text-xs text-zinc-300">
+                    {row.metric}
+                  </td>
+                  <td className="py-2.5 px-4 text-center text-xs text-zinc-400 font-mono">
+                    {row.before}
+                  </td>
+                  <td
+                    className="py-2.5 px-4 text-center text-xs font-mono font-semibold"
+                    style={{ color: accent }}
+                  >
                     {row.unit ? row.unit : row.after}
                   </td>
                 </tr>
@@ -385,12 +680,22 @@ function renderContent(slide: SlideData, accent: string) {
 
     case "license":
       return (
-        <div className="mt-6 rounded-2xl border p-6" style={{ borderColor: accent + "35", backgroundColor: accent + "08" }}>
+        <div
+          className="mt-6 rounded-2xl border p-6"
+          style={{ borderColor: accent + "35", backgroundColor: accent + "08" }}
+        >
           <div className="flex items-center gap-2 mb-4">
             <Lock className="h-4 w-4" style={{ color: accent }} />
-            <span className="text-xs font-mono uppercase tracking-wider" style={{ color: accent }}>License</span>
+            <span
+              className="text-xs font-mono uppercase tracking-wider"
+              style={{ color: accent }}
+            >
+              License
+            </span>
           </div>
-          <pre className="text-xs text-zinc-400 font-mono leading-relaxed whitespace-pre-wrap">{slide.licenseText}</pre>
+          <pre className="text-xs text-zinc-400 font-mono leading-relaxed whitespace-pre-wrap">
+            {slide.licenseText}
+          </pre>
         </div>
       );
 
@@ -408,14 +713,28 @@ function renderContent(slide: SlideData, accent: string) {
   }
 }
 
-function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }) {
+function PillChoice({
+  onChoose,
+}: {
+  onChoose: (p: Exclude<Path, null>) => void;
+}) {
   const [hovered, setHovered] = useState<Path>(null);
+  const [activeInstallTab, setActiveInstallTab] =
+    useState<InstallerTab>("stack");
   const [copied, setCopied] = useState(false);
+  const activeInstallCommand = INSTALL_COMMANDS[activeInstallTab];
+  const isStackTab = activeInstallTab === "stack";
+  const deploymentGuideUrl = isStackTab
+    ? WATCHDOG_DEPLOYMENT_GUIDE_URL
+    : OJO_DEPLOYMENT_GUIDE_URL;
+  const deploymentGuideLabel = isStackTab
+    ? "Watchdog DEPLOYMENT.md"
+    : "Ojo DEPLOYMENT.md";
+  const installAccent = isStackTab ? RED : BLUE;
+  const installGlow = isStackTab ? RED_GLOW : BLUE_GLOW;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(
-      "curl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py && python3 /tmp/install.py"
-    );
+    navigator.clipboard.writeText(activeInstallCommand);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -430,20 +749,28 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-2xl text-center px-4 py-6 sm:px-6 sm:py-7 rounded-3xl border bg-zinc-950/90 backdrop-blur-sm"
-        style={{ borderColor: "#ffffff1f", boxShadow: "0 14px 48px rgba(0,0,0,0.45)" }}
+        className="relative z-10 flex flex-col w-full max-w-5xl text-center px-4 py-6 sm:px-6 sm:py-7 rounded-3xl border bg-zinc-950/90 backdrop-blur-sm"
+        style={{
+          borderColor: "#ffffff1f",
+          boxShadow: "0 14px 48px rgba(0,0,0,0.45)",
+        }}
       >
         <div className="flex items-center justify-center gap-2 mb-6">
           <Sparkles className="h-5 w-5 text-retro-glow" />
-          <span className="text-xs font-mono uppercase tracking-[0.25em] text-retro-dim">Watchdog</span>
+          <span className="text-xs font-mono uppercase tracking-[0.25em] text-retro-dim">
+            Watchdog
+          </span>
         </div>
 
-        <h1 className="text-3xl sm:text-6xl font-bold tracking-tight mb-4">Choose your path</h1>
-        <p className="text-retro-dim text-sm sm:text-lg mb-8 sm:mb-12 max-w-md mx-auto">
-          Two pills. One decision. Your journey is tailored to what you actually need.
+        <h1 className="text-3xl sm:text-6xl font-bold tracking-tight mb-4">
+          Observe Your Infrastructure Clearly
+        </h1>
+        <p className="text-retro-dim text-sm sm:text-lg mb-2 sm:mb-3 max-w-3xl mx-auto leading-relaxed">
+          Use a powerful stack for traces, logs, AI insights, incidents,
+          notifications, and dashboards. Choose your path.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <div className="order-2 mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -453,25 +780,42 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
             className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300"
             style={{
               borderColor: BLUE + "50",
-              backgroundColor: hovered === "understand" ? BLUE + "18" : BLUE + "08",
-              boxShadow: hovered === "understand" ? `0 10px 30px ${BLUE_GLOW}` : "none",
+              backgroundColor:
+                hovered === "understand" ? BLUE + "18" : BLUE + "08",
+              boxShadow:
+                hovered === "understand" ? `0 10px 30px ${BLUE_GLOW}` : "none",
             }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: BLUE + "25", boxShadow: `0 0 20px ${BLUE}40` }}>
-                💊
+              <div
+                className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl"
+                style={{
+                  backgroundColor: BLUE + "25",
+                  boxShadow: `0 0 20px ${BLUE}40`,
+                }}
+              >
+                🧠
               </div>
               <div>
-                <div className="font-bold text-xl" style={{ color: BLUE }}>Blue Pill</div>
-                <div className="text-xs font-mono text-retro-dim uppercase tracking-wider">Understand</div>
+                <div className="font-bold text-xl" style={{ color: BLUE }}>
+                  Platform Understanding
+                </div>
+                <div className="text-xs font-mono text-retro-dim uppercase tracking-wider">
+                  Architecture & Concepts
+                </div>
               </div>
             </div>
             <p className="text-sm text-zinc-300 leading-relaxed mb-4">
-              What is the purpose of Watchdog? How does it work? Why is it different? For thinkers.
+              Learn how the stack works, how services connect, and how to
+              reason about observability flows before deployment.
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {["Architecture", "Core Services"].map(t => (
-                <span key={t} className="text-xs px-2 py-0.5 rounded font-mono" style={{ backgroundColor: BLUE + "20", color: BLUE }}>
+              {["Architecture", "Core Services"].map((t) => (
+                <span
+                  key={t}
+                  className="text-xs px-2 py-0.5 rounded font-mono"
+                  style={{ backgroundColor: BLUE + "20", color: BLUE }}
+                >
                   {t}
                 </span>
               ))}
@@ -492,20 +836,35 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
             }}
           >
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: RED + "25", boxShadow: `0 0 20px ${RED}40` }}>
-                💊
+              <div
+                className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl"
+                style={{
+                  backgroundColor: RED + "25",
+                  boxShadow: `0 0 20px ${RED}40`,
+                }}
+              >
+                🚀
               </div>
               <div>
-                <div className="font-bold text-xl" style={{ color: RED }}>Red Pill</div>
-                <div className="text-xs font-mono text-retro-dim uppercase tracking-wider">Deploy & Use</div>
+                <div className="font-bold text-xl" style={{ color: RED }}>
+                  Deployment Fast Track
+                </div>
+                <div className="text-xs font-mono text-retro-dim uppercase tracking-wider">
+                  Install & Operate
+                </div>
               </div>
             </div>
             <p className="text-sm text-zinc-300 leading-relaxed mb-4">
-              Fast path to deploying a dev version locally, exploring the UI, and getting value immediately. For doers.
+              Follow the shortest path to install the stack, onboard data,
+              validate signals, and start operating confidently.
             </p>
             <div className="flex flex-wrap gap-1.5">
-              {["Quick Start", "Development"].map(t => (
-                <span key={t} className="text-xs px-2 py-0.5 rounded font-mono" style={{ backgroundColor: RED + "20", color: RED }}>
+              {["Quick Start", "Operations"].map((t) => (
+                <span
+                  key={t}
+                  className="text-xs px-2 py-0.5 rounded font-mono"
+                  style={{ backgroundColor: RED + "20", color: RED }}
+                >
                   {t}
                 </span>
               ))}
@@ -513,30 +872,135 @@ function PillChoice({ onChoose }: { onChoose: (p: Exclude<Path, null>) => void }
           </motion.button>
         </div>
 
-        <div className="mt-8 flex flex-col items-center">
+        <div className="order-1 mt-8 flex flex-col items-center">
+          <div className="mb-3 flex w-full flex-wrap items-center justify-center gap-2">
+            {INSTALL_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => {
+                  setActiveInstallTab(tab.key);
+                  setCopied(false);
+                }}
+                className="rounded-xl border px-3 py-2 text-xs font-mono transition"
+                style={{
+                  borderColor:
+                    activeInstallTab === tab.key
+                      ? installAccent + "75"
+                      : "#3f3f46",
+                  backgroundColor:
+                    activeInstallTab === tab.key
+                      ? installAccent + "1f"
+                      : "#0a0a0ab3",
+                  color:
+                    activeInstallTab === tab.key ? installAccent : "#d4d4d8",
+                  boxShadow:
+                    activeInstallTab === tab.key
+                      ? `0 0 16px ${installGlow}`
+                      : "none",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <div className="relative w-full">
-            <pre className="rounded-2xl bg-zinc-950 px-4 sm:px-5 py-3 font-mono text-[11px] sm:text-xs text-zinc-200 border border-zinc-800 overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
-              <code>curl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py && python3 /tmp/install.py</code>
-            </pre>
+            <IdeCodeBlock code={activeInstallCommand} accent={installAccent} />
             <button
               onClick={handleCopy}
               className="absolute top-1 right-1 p-1 rounded bg-retro-bg/60 hover:bg-retro-bg/80 text-retro-dim"
               title="Copy command"
             >
-              {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? (
+                <CheckCircle2 className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
             </button>
             {copied && (
-              <span className="absolute top-2 right-8 text-xs text-green-400">Copied!</span>
+              <span className="absolute top-2 right-8 text-xs text-green-400">
+                Copied!
+              </span>
             )}
           </div>
-          <p className="mt-2 text-xs text-retro-dim">
-            Run the command above to spin up Watchdog and the full LGTM stack locally. Great for exploring the UI and features without any commitment.
+          <p className="mt-3 text-sm text-zinc-300">
+            {isStackTab
+              ? `Quick start: run this command, then follow the stack deployment guide for watchdog ${STACK_RELEASE_TAG}.`
+              : `Quick start: run this command, then follow the Ojo deployment guide for ${OJO_RELEASE_TAG}.`}
           </p>
+          {isStackTab ? (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <a
+                href={deploymentGuideUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                style={{
+                  borderColor: RED + "65",
+                  backgroundColor: RED + "14",
+                  color: RED,
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Watchdog deployment
+              </a>
+              <a
+                href={WATCHDOG_RELEASE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                style={{
+                  borderColor: BLUE + "65",
+                  backgroundColor: BLUE + "14",
+                  color: BLUE,
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Watchdog release {STACK_RELEASE_TAG}
+              </a>
+            </div>
+          ) : (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <a
+                href={deploymentGuideUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                style={{
+                  borderColor: BLUE + "65",
+                  backgroundColor: BLUE + "14",
+                  color: BLUE,
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                {deploymentGuideLabel}
+              </a>
+              <a
+                href={OJO_RELEASE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                style={{
+                  borderColor: RED + "65",
+                  backgroundColor: RED + "14",
+                  color: RED,
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Ojo release {OJO_RELEASE_TAG}
+              </a>
+            </div>
+          )}
           <div className="mt-4 flex w-full flex-col items-center gap-3">
             <button
               onClick={() => onChoose("docs")}
               className="inline-flex min-h-11 items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-mono font-semibold transition"
-              style={{ borderColor: DOCS + "55", backgroundColor: DOCS + "12", color: DOCS, boxShadow: `0 0 22px ${DOCS_GLOW}` }}
+              style={{
+                borderColor: DOCS + "55",
+                backgroundColor: DOCS + "12",
+                color: DOCS,
+                boxShadow: `0 0 22px ${DOCS_GLOW}`,
+              }}
             >
               <FileText className="h-4 w-4" />
               Open Full Product Documentation
@@ -708,7 +1172,15 @@ END OF TERMS AND CONDITIONS`;
 
 type LegalStep = "notice" | "license";
 
-function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAccept: () => void; onBack: () => void }) {
+function LegalGate({
+  path,
+  onAccept,
+  onBack,
+}: {
+  path: Exclude<Path, null>;
+  onAccept: () => void;
+  onBack: () => void;
+}) {
   const [step, setStep] = useState<LegalStep>("notice");
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -718,12 +1190,15 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
   const isNotice = step === "notice";
   const docTitle = isNotice ? "NOTICE" : "LICENSE";
   const docText = isNotice ? NOTICE_TEXT : LICENSE_TEXT;
-  const btnLabel = isNotice ? "Continue to License →" : "I Accept — Begin Journey";
+  const btnLabel = isNotice
+    ? "Continue to License →"
+    : "I Accept — Begin Journey";
 
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) setScrolledToBottom(true);
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8)
+      setScrolledToBottom(true);
   };
 
   useEffect(() => {
@@ -748,22 +1223,45 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -16 }}
         transition={{ duration: 0.25 }}
-        className="relative z-10 w-full max-w-2xl"
+        className="relative z-10 w-full max-w-5xl"
       >
         <div className="flex items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4" style={{ color: accent }} />
-            <span className="text-xs font-mono uppercase tracking-[0.2em]" style={{ color: accent }}>Legal Review</span>
+            <span
+              className="text-xs font-mono uppercase tracking-[0.2em]"
+              style={{ color: accent }}
+            >
+              Legal Review
+            </span>
           </div>
-          <div className="text-xs font-mono text-retro-dim">{isNotice ? "1 / 2" : "2 / 2"}</div>
+          <div className="text-xs font-mono text-retro-dim">
+            {isNotice ? "1 / 2" : "2 / 2"}
+          </div>
         </div>
 
-        <div className="rounded-3xl border overflow-hidden bg-zinc-950/95 backdrop-blur-sm" style={{ borderColor: accent + "40", boxShadow: `0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px ${accent}20` }}>
-          <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b" style={{ borderColor: accent + "25", backgroundColor: accent + "08" }}>
-            <span className="text-xs font-mono text-retro-dim">WATCHDOG / {docTitle}</span>
+        <div
+          className="rounded-3xl border overflow-hidden bg-zinc-950/95 backdrop-blur-sm"
+          style={{
+            borderColor: accent + "40",
+            boxShadow: `0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px ${accent}20`,
+          }}
+        >
+          <div
+            className="flex items-center justify-between px-4 sm:px-6 py-4 border-b"
+            style={{
+              borderColor: accent + "25",
+              backgroundColor: accent + "08",
+            }}
+          >
+            <span className="text-xs font-mono text-retro-dim">
+              WATCHDOG / {docTitle}
+            </span>
             <div className="flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-retro-dim" />
-              <span className="text-xs font-mono text-retro-dim">{docTitle}</span>
+              <span className="text-xs font-mono text-retro-dim">
+                {docTitle}
+              </span>
             </div>
           </div>
 
@@ -777,7 +1275,13 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
             <div className="h-8" />
           </div>
 
-          <div className="border-t px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ borderColor: accent + "25", backgroundColor: accent + "05" }}>
+          <div
+            className="border-t px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            style={{
+              borderColor: accent + "25",
+              backgroundColor: accent + "05",
+            }}
+          >
             <button
               onClick={isNotice ? onBack : () => setStep("notice")}
               className="inline-flex items-center gap-2 text-xs font-mono text-retro-dim hover:text-zinc-300 transition border border-retro-border rounded-lg px-3 py-2 min-h-10"
@@ -787,14 +1291,20 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
             </button>
 
             <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
-              {!scrolledToBottom && <span className="text-[11px] sm:text-xs font-mono text-retro-dim animate-pulse">↓ scroll to read</span>}
+              {!scrolledToBottom && (
+                <span className="text-[11px] sm:text-xs font-mono text-retro-dim animate-pulse">
+                  ↓ scroll to read
+                </span>
+              )}
               <motion.button
                 animate={{ opacity: scrolledToBottom ? 1 : 0.35 }}
                 onClick={scrolledToBottom ? handlePrimary : undefined}
                 className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-mono font-semibold transition min-h-10"
                 style={{
                   borderColor: scrolledToBottom ? accent + "70" : accent + "30",
-                  backgroundColor: scrolledToBottom ? accent + "20" : accent + "08",
+                  backgroundColor: scrolledToBottom
+                    ? accent + "20"
+                    : accent + "08",
                   color: scrolledToBottom ? accent : accent + "60",
                   cursor: scrolledToBottom ? "pointer" : "not-allowed",
                   boxShadow: scrolledToBottom ? `0 0 20px ${glow}` : "none",
@@ -808,7 +1318,9 @@ function LegalGate({ path, onAccept, onBack }: { path: Exclude<Path, null>; onAc
         </div>
 
         <p className="mt-4 text-center text-xs font-mono text-retro-dim">
-          {isNotice ? "By continuing you acknowledge the attributions above." : "By clicking accept you agree to the license terms."}
+          {isNotice
+            ? "By continuing you acknowledge the attributions above."
+            : "By clicking accept you agree to the license terms."}
         </p>
       </motion.div>
     </div>
@@ -835,7 +1347,10 @@ export default function App() {
       if (!starts.has(section)) starts.set(section, index);
     });
 
-    return Array.from(starts.entries()).map(([label, index]) => ({ label, index }));
+    return Array.from(starts.entries()).map(([label, index]) => ({
+      label,
+      index,
+    }));
   }, [slides]);
 
   const total = slides.length;
@@ -856,10 +1371,13 @@ export default function App() {
   const swipeLockedToScroll = React.useRef(false);
   const slideFrameRef = React.useRef<HTMLDivElement>(null);
 
-  const go = useCallback((n: number) => {
-    if (total <= 0) return;
-    setSlideIndex(clamp(n, 0, total - 1));
-  }, [total]);
+  const go = useCallback(
+    (n: number) => {
+      if (total <= 0) return;
+      setSlideIndex(clamp(n, 0, total - 1));
+    },
+    [total],
+  );
 
   const choosePath = (p: Exclude<Path, null>) => {
     setPath(p);
@@ -882,7 +1400,8 @@ export default function App() {
   }, [canPrev, canNext, go, slideIndex]);
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    swipeLockedToScroll.current = findHorizontalScrollContainer(e.target) !== null;
+    swipeLockedToScroll.current =
+      findHorizontalScrollContainer(e.target) !== null;
     touchStartX.current = e.changedTouches[0]?.clientX ?? null;
     touchStartY.current = e.changedTouches[0]?.clientY ?? null;
   };
@@ -897,7 +1416,12 @@ export default function App() {
     }
     const endX = e.changedTouches[0]?.clientX;
     const endY = e.changedTouches[0]?.clientY;
-    if (typeof endX !== "number" || typeof endY !== "number" || touchStartY.current === null) return;
+    if (
+      typeof endX !== "number" ||
+      typeof endY !== "number" ||
+      touchStartY.current === null
+    )
+      return;
     const delta = endX - touchStartX.current;
     const deltaY = endY - touchStartY.current;
     if (Math.abs(delta) > Math.abs(deltaY)) {
@@ -910,20 +1434,22 @@ export default function App() {
   };
 
   if (!path) return <PillChoice onChoose={choosePath} />;
-  if (!legalDone) return (
-    <LegalGate
-      path={path}
-      onAccept={() => setLegalDone(true)}
-      onBack={() => setPath(null)}
-    />
-  );
+  if (!legalDone)
+    return (
+      <LegalGate
+        path={path}
+        onAccept={() => setLegalDone(true)}
+        onBack={() => setPath(null)}
+      />
+    );
 
   const progressPct = total ? Math.round(((slideIndex + 1) / total) * 100) : 0;
-  const pathLabel = path === "understand"
-    ? "Blue Pill — The Why"
-    : path === "use"
-      ? "Red Pill — Deploy & Use"
-      : "Documentation — Product Guide";
+  const pathLabel =
+    path === "understand"
+      ? "Platform Understanding — The Why"
+      : path === "use"
+        ? "Deployment Fast Track — Install & Use"
+        : "Documentation — Product Guide";
 
   return (
     <div className="min-h-screen bg-retro-bg text-retro-text font-sans selection:bg-retro-glow/20">
@@ -941,24 +1467,40 @@ export default function App() {
       <div className="relative mx-auto max-w-5xl px-4 sm:px-5 py-6 sm:py-8">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl border flex items-center justify-center" style={{ backgroundColor: accent + "15", borderColor: accent + "40", boxShadow: `0 6px 18px ${glow}` }}>
+            <div
+              className="h-11 w-11 rounded-2xl border flex items-center justify-center"
+              style={{
+                backgroundColor: accent + "15",
+                borderColor: accent + "40",
+                boxShadow: `0 6px 18px ${glow}`,
+              }}
+            >
               <Sparkles className="h-5 w-5" style={{ color: accent }} />
             </div>
             <div>
-              <div className="text-xs font-mono uppercase tracking-wider text-retro-dim">Watchdog</div>
-              <div className="text-sm font-semibold" style={{ color: accent }}>{pathLabel}</div>
+              <div className="text-xs font-mono uppercase tracking-wider text-retro-dim">
+                Watchdog
+              </div>
+              <div className="text-sm font-semibold" style={{ color: accent }}>
+                {pathLabel}
+              </div>
             </div>
           </div>
 
           <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 sm:gap-4">
             <button
-              onClick={() => { setPath(null); setLegalDone(false); }}
+              onClick={() => {
+                setPath(null);
+                setLegalDone(false);
+              }}
               className="text-xs font-mono text-retro-dim hover:text-zinc-300 transition border border-retro-border rounded-lg px-3 py-2 min-h-10"
             >
               ⇄ switch path
             </button>
             <div className="flex items-center gap-3">
-              <div className="text-xs font-mono text-retro-dim">{slideIndex + 1} / {total}</div>
+              <div className="text-xs font-mono text-retro-dim">
+                {slideIndex + 1} / {total}
+              </div>
               <div className="w-24 sm:w-36 h-1.5 rounded-full bg-retro-panel border border-retro-border overflow-hidden">
                 <motion.div
                   className="h-full rounded-full"
@@ -983,12 +1525,16 @@ export default function App() {
                   className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
                   style={{
                     borderColor: isActive ? accent + "60" : accent + "25",
-                    backgroundColor: isActive ? accent + "16" : "rgba(10, 10, 10, 0.45)",
+                    backgroundColor: isActive
+                      ? accent + "16"
+                      : "rgba(10, 10, 10, 0.45)",
                     color: isActive ? accent : "#a1a1aa",
                     boxShadow: isActive ? `0 0 18px ${glow}` : "none",
                   }}
                 >
-                  <span className="text-[10px] uppercase tracking-[0.16em] opacity-70">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="text-[10px] uppercase tracking-[0.16em] opacity-70">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   {entry.label}
                 </button>
               );
@@ -997,7 +1543,13 @@ export default function App() {
         )}
 
         <main className="mt-8">
-          <div className="rounded-3xl border bg-zinc-950/90 overflow-hidden backdrop-blur-sm" style={{ borderColor: accent + "35", boxShadow: `0 16px 44px rgba(0,0,0,0.48), 0 0 0 1px ${accent}16` }}>
+          <div
+            className="rounded-3xl border bg-zinc-950/90 overflow-hidden backdrop-blur-sm"
+            style={{
+              borderColor: accent + "35",
+              boxShadow: `0 16px 44px rgba(0,0,0,0.48), 0 0 0 1px ${accent}16`,
+            }}
+          >
             <div
               ref={slideFrameRef}
               className="px-4 py-6 sm:px-10 sm:py-10 relative min-h-[440px] sm:min-h-[520px]"
@@ -1015,13 +1567,19 @@ export default function App() {
                   transition={{ duration: 0.22 }}
                 >
                   <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em] text-retro-dim">
-                    <span>Section {currentSectionIndex + 1} / {sectionEntries.length || 1}</span>
+                    <span>
+                      Section {currentSectionIndex + 1} /{" "}
+                      {sectionEntries.length || 1}
+                    </span>
                     <span className="text-zinc-600">|</span>
                     <span style={{ color: accent }}>{currentSection}</span>
                   </div>
 
                   {s?.kicker && (
-                    <div className="text-sm font-mono font-bold uppercase tracking-[0.18em]" style={{ color: accent }}>
+                    <div
+                      className="text-sm font-mono font-bold uppercase tracking-[0.18em]"
+                      style={{ color: accent }}
+                    >
                       <span style={{ color: accent }}>{">"}</span> {s.kicker}
                     </div>
                   )}
@@ -1046,10 +1604,19 @@ export default function App() {
               </AnimatePresence>
             </div>
 
-            <div className="px-4 py-4 sm:px-10 flex items-center justify-between gap-2 sm:gap-3" style={{ borderColor: accent + "25", backgroundColor: accent + "05" }}>
+            <div
+              className="px-4 py-4 sm:px-10 flex items-center justify-between gap-2 sm:gap-3"
+              style={{
+                borderColor: accent + "25",
+                backgroundColor: accent + "05",
+              }}
+            >
               <button
                 className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm font-mono transition disabled:opacity-30 min-h-10"
-                style={{ borderColor: canPrev ? accent + "50" : "transparent", color: canPrev ? accent : undefined }}
+                style={{
+                  borderColor: canPrev ? accent + "50" : "transparent",
+                  color: canPrev ? accent : undefined,
+                }}
                 onClick={() => canPrev && go(slideIndex - 1)}
                 disabled={!canPrev}
               >
@@ -1064,7 +1631,8 @@ export default function App() {
                     onClick={() => go(i)}
                     className="h-2 w-2 rounded-full transition-all border"
                     style={{
-                      backgroundColor: i === slideIndex ? accent : "transparent",
+                      backgroundColor:
+                        i === slideIndex ? accent : "transparent",
                       borderColor: i === slideIndex ? accent : accent + "40",
                       boxShadow: i === slideIndex ? `0 0 10px ${glow}` : "none",
                       width: i === slideIndex ? "24px" : "8px",
@@ -1076,7 +1644,10 @@ export default function App() {
 
               <button
                 className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs sm:text-sm font-mono transition disabled:opacity-30 min-h-10"
-                style={{ borderColor: canNext ? accent + "50" : "transparent", color: canNext ? accent : undefined }}
+                style={{
+                  borderColor: canNext ? accent + "50" : "transparent",
+                  color: canNext ? accent : undefined,
+                }}
                 onClick={() => canNext && go(slideIndex + 1)}
                 disabled={!canNext}
               >
@@ -1087,8 +1658,13 @@ export default function App() {
           </div>
 
           <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
-            <div className="text-xs font-mono text-retro-dim">← → keys · swipe to navigate</div>
-            <div className="text-xs font-mono text-retro-dim" style={{ color: accent + "80" }}>
+            <div className="text-xs font-mono text-retro-dim">
+              ← → keys · swipe to navigate
+            </div>
+            <div
+              className="text-xs font-mono text-retro-dim"
+              style={{ color: accent + "80" }}
+            >
               {slideIndex + 1} of {total} · {progressPct}% complete
             </div>
           </div>

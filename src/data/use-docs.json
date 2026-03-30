@@ -71,7 +71,7 @@
     "workflowSteps": [
       {
         "label": "Pick installer or manual path",
-        "detail": "Use python3 install.py for the quickest local evaluation, or clone, create .env, and run docker compose up -d --build if you want full manual control."
+        "detail": "Use the showcase installer tabs to run the stack install flow for watchdog v0.0.2 from DEPLOYMENT.md, then use Ojo v0.0.2 Linux/Windows commands; or clone, create .env, and run docker compose up -d --build if you want full manual control."
       },
       {
         "label": "Wait for health, not just containers",
