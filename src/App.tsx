@@ -195,11 +195,11 @@ function IdeCodeBlock({ code, accent }: { code: string; accent: string }) {
   const lines = code.split("\n");
   return (
     <div
-      className="relative w-full rounded-2xl border p-1 text-left"
+      className="showcase-code-shell relative w-full rounded-2xl border p-1 text-left"
       style={{ borderColor: accent + "45", boxShadow: `0 0 18px ${accent}33` }}
     >
       <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden">
-        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-zinc-800 bg-black/30">
+        <div className="showcase-code-header flex items-center gap-1.5 px-4 py-2 border-b border-zinc-800 bg-black/30">
           <div className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
           <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
           <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
@@ -207,7 +207,7 @@ function IdeCodeBlock({ code, accent }: { code: string; accent: string }) {
             terminal
           </span>
         </div>
-        <pre className="px-3 sm:px-4 py-3 text-left font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
+        <pre className="showcase-code px-3 sm:px-4 py-3 text-left font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
           <code>
             {lines.map((line, idx) => (
               <div
@@ -595,8 +595,8 @@ function renderContent(slide: SlideData, accent: string) {
             </div>
           )}
           <div
-            className="rounded-2xl border overflow-auto"
-            style={{ borderColor: accent + "35", backgroundColor: "#0a0a0a" }}
+            className="showcase-code-panel rounded-2xl border overflow-auto"
+            style={{ borderColor: accent + "35" }}
           >
             <div
               className="flex items-center gap-1.5 px-4 py-3 border-b"
@@ -606,7 +606,7 @@ function renderContent(slide: SlideData, accent: string) {
               <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
               <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
             </div>
-            <pre className="px-5 py-4 text-xs sm:text-sm font-mono leading-relaxed text-zinc-300 max-h-[400px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
+            <pre className="showcase-code px-5 py-4 text-xs sm:text-sm font-mono leading-relaxed text-zinc-300 max-h-[400px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
               <code className="whitespace-pre">{slide.code}</code>
             </pre>
           </div>
@@ -791,7 +791,7 @@ function PillChoice({
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-6xl font-bold tracking-tight mb-4">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
           Observe Your Infrastructure Clearly
         </h1>
         <p className="text-retro-dim text-sm sm:text-lg mb-2 sm:mb-3 max-w-3xl mx-auto leading-relaxed">
@@ -799,14 +799,14 @@ function PillChoice({
           notifications, and dashboards. Choose your path.
         </p>
 
-        <div className="order-2 mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <div className="order-2 mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onHoverStart={() => setHovered("understand")}
             onHoverEnd={() => setHovered(null)}
             onClick={() => onChoose("understand")}
-            className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300"
+            className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300 min-h-[220px] flex flex-col"
             style={{
               borderColor: BLUE + "50",
               backgroundColor:
@@ -838,7 +838,7 @@ function PillChoice({
               Learn how the stack works, how services connect, and how to
               reason about observability flows before deployment.
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="mt-auto flex flex-wrap gap-1.5">
               {["Architecture", "Core Services"].map((t) => (
                 <span
                   key={t}
@@ -857,7 +857,7 @@ function PillChoice({
             onHoverStart={() => setHovered("use")}
             onHoverEnd={() => setHovered(null)}
             onClick={() => onChoose("use")}
-            className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300"
+            className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300 min-h-[220px] flex flex-col"
             style={{
               borderColor: RED + "50",
               backgroundColor: hovered === "use" ? RED + "18" : RED + "08",
@@ -887,7 +887,7 @@ function PillChoice({
               Follow the shortest path to install the stack, onboard data,
               validate signals, and start operating confidently.
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="mt-auto flex flex-wrap gap-1.5">
               {["Quick Start", "Operations"].map((t) => (
                 <span
                   key={t}
@@ -902,7 +902,7 @@ function PillChoice({
         </div>
 
         <div className="order-1 mt-8 flex flex-col items-center">
-          <div className="mb-3 flex w-full flex-wrap items-center justify-center gap-2">
+          <div className="mb-3 grid w-full grid-cols-1 sm:grid-cols-3 gap-2">
             {INSTALL_TABS.map((tab) => (
               <button
                 key={tab.key}
@@ -911,7 +911,7 @@ function PillChoice({
                   setActiveInstallTab(tab.key);
                   setCopied(false);
                 }}
-                className="rounded-xl border px-3 py-2 text-xs font-mono transition"
+                className="w-full rounded-xl border px-3 py-2 text-xs font-mono transition min-h-10"
                 style={{
                   borderColor:
                     activeInstallTab === tab.key
@@ -1020,10 +1020,10 @@ function PillChoice({
               </a>
             </div>
           )}
-          <div className="mt-4 flex w-full flex-col items-center gap-3">
+          <div className="mt-4 flex w-full flex-col items-stretch sm:items-center gap-3">
             <button
               onClick={() => onChoose("docs")}
-              className="inline-flex min-h-11 items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-mono font-semibold transition"
+              className="inline-flex min-h-11 w-full sm:w-auto justify-center items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-mono font-semibold transition"
               style={{
                 borderColor: DOCS + "55",
                 backgroundColor: DOCS + "12",
@@ -1035,14 +1035,14 @@ function PillChoice({
               Open Full Product Documentation
             </button>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
+            <div className="flex w-full flex-wrap items-center justify-center gap-2">
               {DOC_LINKS.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-xs font-mono text-zinc-300 transition hover:border-zinc-700 hover:text-zinc-100"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-xs font-mono text-zinc-300 transition hover:border-zinc-700 hover:text-zinc-100"
                 >
                   <FileText className="h-3.5 w-3.5" />
                   {item.label}
@@ -1239,6 +1239,7 @@ function LegalGate({
     if (isNotice) setStep("license");
     else onAccept();
   };
+  const legalLines = docText.split("\n");
 
   return (
     <div className="min-h-screen bg-retro-bg text-retro-text font-sans flex flex-col items-center justify-center relative overflow-hidden px-4 py-8 sm:px-5 sm:py-10">
@@ -1283,12 +1284,12 @@ function LegalGate({
               backgroundColor: accent + "08",
             }}
           >
-            <span className="text-xs font-mono text-retro-dim">
+            <span className="text-xs font-mono font-bold tracking-wide text-retro-dim">
               WATCHDOG / {docTitle}
             </span>
             <div className="flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-retro-dim" />
-              <span className="text-xs font-mono text-retro-dim">
+              <span className="text-xs font-mono font-bold tracking-wide text-retro-dim">
                 {docTitle}
               </span>
             </div>
@@ -1300,7 +1301,27 @@ function LegalGate({
             className="px-4 sm:px-6 py-5 overflow-y-auto font-mono text-xs scrollbar-thin scrollbar-track-zinc-900 scrollbar-thumb-zinc-700 hover:scrollbar-thumb-zinc-600 leading-relaxed text-zinc-300 bg-retro-bg"
             style={{ maxHeight: "420px" }}
           >
-            <pre className="whitespace-pre-wrap break-words">{docText}</pre>
+            <div className="legal-doc whitespace-pre-wrap break-words">
+              {legalLines.map((line, idx) => {
+                const trimmed = line.trim();
+                const isDivider = /^─{6,}$/.test(trimmed);
+                const isSectionHeading =
+                  /^[A-Z][A-Z0-9 &(),./-]+$/.test(trimmed) &&
+                  trimmed.length > 4 &&
+                  !trimmed.startsWith("HTTP://");
+                const isClauseHeading = /^\d+\.\s+[A-Z]/.test(trimmed);
+                const isBoldLine = isSectionHeading || isClauseHeading;
+                return (
+                  <div
+                    key={`${idx}-${line}`}
+                    className={isBoldLine ? "font-bold text-retro-text" : "font-medium"}
+                    style={{ opacity: isDivider ? 0.65 : 1 }}
+                  >
+                    {line || " "}
+                  </div>
+                );
+              })}
+            </div>
             <div className="h-8" />
           </div>
 
