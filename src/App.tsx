@@ -3,9 +3,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
+  Container,
   FileText,
+  FolderGit2,
+  Github,
   Lock,
+  Monitor,
   Sparkles,
   Terminal,
   Copy,
@@ -64,6 +69,11 @@ ojo --config linux.yaml`,
   windows: `Invoke-WebRequest https://github.com/observantio/ojo/releases/download/${OJO_RELEASE_TAG}/ojo-${OJO_RELEASE_TAG}-windows-x86_64.exe -OutFile .\\ojo.exe
 .\\ojo.exe --config windows.yaml`,
 };
+
+function installerTabIcon(tab: InstallerTab) {
+  if (tab === "windows") return <Monitor className="h-4 w-4" />;
+  return <Container className="h-4 w-4" />;
+}
 
 function withBaseUrl(src: string) {
   if (!src) return src;
@@ -335,6 +345,20 @@ function SlideGallery({ slide, accent }: { slide: SlideData; accent: string }) {
 
 function SlideLinks({ slide, accent }: { slide: SlideData; accent: string }) {
   if (!slide.links?.length) return null;
+  const linkIcon = (label: string, href: string) => {
+    const lowerLabel = label.toLowerCase();
+    const lowerHref = href.toLowerCase();
+    if (lowerLabel.includes("repository") && lowerHref.includes("github.com")) {
+      return lowerLabel.includes("project") ? (
+        <Github className="h-4 w-4" />
+      ) : (
+        <FolderGit2 className="h-4 w-4" />
+      );
+    }
+    if (lowerLabel.includes("guide")) return <BookOpen className="h-4 w-4" />;
+    if (lowerLabel.includes("readme")) return <FileText className="h-4 w-4" />;
+    return <FileText className="h-4 w-4" />;
+  };
   return (
     <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
       {slide.links.map((item) => (
@@ -347,8 +371,20 @@ function SlideLinks({ slide, accent }: { slide: SlideData; accent: string }) {
           style={{ borderColor: accent + "35" }}
         >
           <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold" style={{ color: accent }}>
-              {item.label}
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border"
+                style={{
+                  color: accent,
+                  borderColor: accent + "35",
+                  backgroundColor: accent + "12",
+                }}
+              >
+                {linkIcon(item.label, item.href)}
+              </span>
+              <div className="text-sm font-semibold" style={{ color: accent }}>
+                {item.label}
+              </div>
             </div>
             <ArrowRight className="h-4 w-4 text-retro-dim" />
           </div>
@@ -760,7 +796,7 @@ function PillChoice({
         <div className="mb-4 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-retro-glow" />
           <span className="text-xs uppercase tracking-[0.22em] text-retro-dim">
-            Observantio
+            Observantio's LGTM
           </span>
         </div>
 
@@ -809,7 +845,12 @@ function PillChoice({
                       : "showcase-home-tab"
                   }`}
                 >
-                  {tab.label}
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="showcase-home-tab-icon">
+                      {installerTabIcon(tab.key)}
+                    </span>
+                    <span>{tab.label}</span>
+                  </span>
                 </button>
               );
             })}
@@ -839,7 +880,7 @@ function PillChoice({
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-retro-dim">
             <span>
               {isStackTab
-                ? `Recommended arch values: amd64 | arm64 | multi`
+                ? `Stack install is intended for Linux hosts, preferably Ubuntu or Amazon Linux. Recommended arch values: amd64 | arm64 | multi`
                 : `Use the latest Ojo ${OJO_RELEASE_TAG} binary for your host.`}
             </span>
             <a
@@ -1580,7 +1621,7 @@ export default function App() {
           <div className="overflow-hidden">
             <div
               ref={slideFrameRef}
-              className="px-0 py-6 sm:py-10 relative min-h-[440px] sm:min-h-[520px]"
+              className="px-0 py-3 sm:py-5 relative min-h-[440px] sm:min-h-[520px]"
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
