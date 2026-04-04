@@ -121,7 +121,7 @@ function ThemeToggleButton({
       style={{
         borderColor: goingToLight ? BLUE + "55" : "#54657d",
         backgroundColor: goingToLight ? BLUE + "12" : "#f8fafcde",
-        color: goingToLight ? BLUE : "#0f172a",
+        color: goingToLight ? "#f3f7ff" : "#0f172a",
         boxShadow: "0 10px 30px rgba(2, 8, 23, 0.2)",
       }}
     >
@@ -135,35 +135,12 @@ function ThemeToggleButton({
   );
 }
 
-function Tick({ accent }: { accent: string }) {
-  return (
-    <div className="pointer-events-none absolute inset-0 opacity-35">
-      <div
-        className="absolute left-4 top-4 h-3 w-3 border-l border-t"
-        style={{ borderColor: accent + "60" }}
-      />
-      <div
-        className="absolute right-4 top-4 h-3 w-3 border-r border-t"
-        style={{ borderColor: accent + "60" }}
-      />
-      <div
-        className="absolute left-4 bottom-4 h-3 w-3 border-l border-b"
-        style={{ borderColor: accent + "60" }}
-      />
-      <div
-        className="absolute right-4 bottom-4 h-3 w-3 border-r border-b"
-        style={{ borderColor: accent + "60" }}
-      />
-    </div>
-  );
-}
-
 function renderCommandLine(line: string) {
   const trimmed = line.trim();
   if (!trimmed) return <span className="text-zinc-500"> </span>;
 
   if (trimmed.startsWith("#")) {
-    return <span className="text-zinc-500 italic">{line}</span>;
+    return <span className="text-zinc-500">{line}</span>;
   }
 
   const assignMatch = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
@@ -191,12 +168,11 @@ function renderCommandLine(line: string) {
   );
 }
 
-function IdeCodeBlock({ code, accent }: { code: string; accent: string }) {
+function IdeCodeBlock({ code }: { code: string }) {
   const lines = code.split("\n");
   return (
     <div
-      className="showcase-code-shell relative w-full rounded-2xl border p-1 text-left"
-      style={{ borderColor: accent + "45", boxShadow: `0 0 18px ${accent}33` }}
+      className="showcase-code-shell relative w-full text-left"
     >
       <div className="rounded-2xl border border-zinc-800 bg-zinc-950 overflow-hidden">
         <div className="showcase-code-header flex items-center gap-1.5 px-4 py-2 border-b border-zinc-800 bg-black/30">
@@ -398,7 +374,7 @@ function renderContent(slide: SlideData, accent: string) {
           {slide.bullets.map((b, i) => (
             <li
               key={i}
-              className="flex gap-3 text-base sm:text-lg leading-relaxed text-zinc-100/90"
+              className="showcase-body-copy flex gap-3 text-base sm:text-lg leading-relaxed"
             >
               <span
                 className="mt-2.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
@@ -443,9 +419,12 @@ function renderContent(slide: SlideData, accent: string) {
       return (
         <div className="mt-6 space-y-5">
           {slide.services?.map((svc, i) => (
-            <div key={i} className="rounded-2xl bg-retro-bg/40 overflow-hidden">
+            <section
+              key={i}
+              className="showcase-service-block overflow-hidden py-4"
+            >
               {svc.image && (
-                <div className="rounded-t-2xl overflow-hidden">
+                <div className="showcase-image-frame overflow-hidden">
                   <img
                     src={withBaseUrl(svc.image.src)}
                     alt={svc.image.alt ?? svc.name}
@@ -453,15 +432,18 @@ function renderContent(slide: SlideData, accent: string) {
                   />
                 </div>
               )}
-              <div className="flex items-center gap-3 mb-4">
+              <div className="mb-4 mt-4 flex items-center gap-3">
                 <div>
-                  <div className="font-semibold text-xl my-3">{svc.name}</div>
+                  <div className="my-3 text-xl font-semibold">{svc.name}</div>
                   <div className="text-sm text-retro-dim">{svc.tagline}</div>
                 </div>
               </div>
               <ul className="space-y-2 mb-4">
                 {svc.bullets.map((b, j) => (
-                  <li key={j} className="flex gap-2.5 text-sm text-zinc-200/90">
+                  <li
+                    key={j}
+                    className="showcase-body-copy flex gap-2.5 text-sm leading-relaxed"
+                  >
                     <span
                       className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
                       style={{ backgroundColor: accent }}
@@ -475,7 +457,7 @@ function renderContent(slide: SlideData, accent: string) {
                   <Tag key={t} label={t} accent={accent} />
                 ))}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       );
@@ -756,11 +738,6 @@ function PillChoice({
   const deploymentGuideUrl = isStackTab
     ? WATCHDOG_DEPLOYMENT_GUIDE_URL
     : OJO_DEPLOYMENT_GUIDE_URL;
-  const deploymentGuideLabel = isStackTab
-    ? "Watchdog DEPLOYMENT.md"
-    : "Ojo DEPLOYMENT.md";
-  const installAccent = isStackTab ? RED : BLUE;
-  const installGlow = isStackTab ? RED_GLOW : BLUE_GLOW;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(activeInstallCommand);
@@ -770,57 +747,153 @@ function PillChoice({
 
   return (
     <div className="min-h-screen bg-retro-bg text-retro-text font-sans flex flex-col items-center justify-center relative overflow-hidden px-4 py-8 sm:px-6">
-      <div className="pointer-events-none fixed inset-0 opacity-[0.025]">
-        <div className="h-full w-full bg-[linear-gradient(to_bottom,rgba(255,255,255,0.22)_1px,transparent_1px)] bg-[length:100%_3px]" />
-      </div>
+        <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
+          <div className="h-full w-full bg-[linear-gradient(to_bottom,rgba(255,255,255,0.22)_1px,transparent_1px)] bg-[length:100%_3px]" />
+        </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 flex flex-col w-full max-w-5xl text-center px-4 py-6 sm:px-6 sm:py-7 rounded-3xl border bg-zinc-950/90 backdrop-blur-sm"
-        style={{
-          borderColor: "#ffffff1f",
-          boxShadow: "0 14px 48px rgba(0,0,0,0.45)",
-        }}
+        className="relative z-10 flex w-full max-w-5xl flex-col text-left"
       >
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <Sparkles className="h-5 w-5 text-retro-glow" />
-          <span className="text-xs font-mono uppercase tracking-[0.25em] text-retro-dim">
-            Watchdog
+        <div className="mb-4 flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-retro-glow" />
+          <span className="text-xs uppercase tracking-[0.22em] text-retro-dim">
+            Observantio
           </span>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-          Observe Your Infrastructure Clearly
+        <h1 className="mb-3 max-w-5xl text-2xl font-bold tracking-tight sm:text-4xl">
+          LGTM stack management for self-hosted teams, made possible for free
         </h1>
-        <p className="text-retro-dim text-sm sm:text-lg mb-2 sm:mb-3 max-w-3xl mx-auto leading-relaxed">
-          Use a powerful stack for traces, logs, AI insights, incidents,
-          notifications, and dashboards. Choose your path.
+        <p className="mb-6 max-w-3xl text-sm leading-relaxed text-retro-dim sm:text-base">
+          Start the stack, open the docs, or jump into the part you need. This
+          home screen is now focused on quick setup and product orientation
+          instead of presentation chrome.
         </p>
 
-        <div className="order-2 mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        <div className="order-1">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-bold text-retro-text">
+                Quick start
+              </div>
+              <div className="text-xs text-retro-dim">
+                Choose an install target and copy the command.
+              </div>
+            </div>
+            <button
+              onClick={() => onChoose("docs")}
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-xs transition showcase-link-inline"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Product docs
+            </button>
+          </div>
+
+          <div className="showcase-home-tabs mb-3 grid w-full grid-cols-1 gap-2 rounded-xl p-1 sm:grid-cols-3">
+            {INSTALL_TABS.map((tab) => {
+              const active = activeInstallTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    setActiveInstallTab(tab.key);
+                    setCopied(false);
+                  }}
+                  className={`showcase-home-tab-${tab.key} w-full rounded-lg px-3 py-2 text-xs transition min-h-10 ${
+                    active
+                      ? "showcase-home-tab showcase-home-tab-active"
+                      : "showcase-home-tab"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative w-full">
+            <IdeCodeBlock code={activeInstallCommand} />
+            <button
+              onClick={handleCopy}
+              className="absolute top-2 right-2 rounded-md px-2 py-1 text-xs text-retro-dim transition hover:bg-retro-bg/60 hover:text-retro-text"
+              title="Copy command"
+            >
+              {copied ? (
+                <span className="inline-flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Copied
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1">
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy
+                </span>
+              )}
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-retro-dim">
+            <span>
+              {isStackTab
+                ? `Recommended arch values: amd64 | arm64 | multi`
+                : `Use the latest Ojo ${OJO_RELEASE_TAG} binary for your host.`}
+            </span>
+            <a
+              href={deploymentGuideUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="showcase-link-inline inline-flex items-center gap-1.5 transition"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Deployment guide
+            </a>
+            <a
+              href={isStackTab ? WATCHDOG_RELEASE_URL : OJO_RELEASE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="showcase-link-inline inline-flex items-center gap-1.5 transition"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Release
+            </a>
+            {DOC_LINKS.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                className="showcase-link-inline inline-flex items-center gap-1.5 transition"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="order-2 mt-10 grid grid-cols-1 gap-3 md:grid-cols-2">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
             onHoverStart={() => setHovered("understand")}
             onHoverEnd={() => setHovered(null)}
             onClick={() => onChoose("understand")}
-            className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300 min-h-[220px] flex flex-col"
-            style={{
-              borderColor: BLUE + "50",
-              backgroundColor:
-                hovered === "understand" ? BLUE + "18" : BLUE + "08",
-              boxShadow:
-                hovered === "understand" ? `0 10px 30px ${BLUE_GLOW}` : "none",
-            }}
+            className="showcase-path group relative overflow-hidden rounded-2xl border p-5 sm:p-6 text-left transition-all duration-200 min-h-[210px] flex flex-col"
+            style={{ color: hovered === "understand" ? BLUE : undefined }}
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{ background: `linear-gradient(180deg, ${BLUE}12, transparent 55%)` }}
+            />
+            <div className="mb-3 flex items-center gap-3">
               <div
-                className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl"
+                className="flex h-12 w-12 items-center justify-center rounded-xl border text-xl"
                 style={{
-                  backgroundColor: BLUE + "25",
-                  boxShadow: `0 0 20px ${BLUE}40`,
+                  opacity: hovered === "understand" ? 1 : 0.85,
+                  borderColor: BLUE + "33",
+                  backgroundColor: BLUE + "12",
                 }}
               >
                 🧠
@@ -829,47 +902,42 @@ function PillChoice({
                 <div className="font-bold text-xl" style={{ color: BLUE }}>
                   Platform Understanding
                 </div>
-                <div className="text-xs font-mono text-retro-dim uppercase tracking-wider">
-                  Architecture & Concepts
+                <div className="text-xs text-retro-dim uppercase tracking-wider">
+                  Architecture and concepts
                 </div>
               </div>
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed mb-4">
-              Learn how the stack works, how services connect, and how to
-              reason about observability flows before deployment.
+            <p className="mb-4 text-sm leading-relaxed text-zinc-300">
+              Read the system flow, understand the services, and learn how the
+              product fits around the LGTM stack.
             </p>
-            <div className="mt-auto flex flex-wrap gap-1.5">
-              {["Architecture", "Core Services"].map((t) => (
-                <span
-                  key={t}
-                  className="text-xs px-2 py-0.5 rounded font-mono"
-                  style={{ backgroundColor: BLUE + "20", color: BLUE }}
-                >
-                  {t}
-                </span>
-              ))}
+            <div
+              className="mt-auto inline-flex items-center gap-2 text-sm font-semibold"
+              style={{ color: BLUE }}
+            >
+              Open the guided architecture path
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             </div>
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
             onHoverStart={() => setHovered("use")}
             onHoverEnd={() => setHovered(null)}
             onClick={() => onChoose("use")}
-            className="group relative rounded-3xl border p-5 sm:p-7 text-left transition-all duration-300 min-h-[220px] flex flex-col"
-            style={{
-              borderColor: RED + "50",
-              backgroundColor: hovered === "use" ? RED + "18" : RED + "08",
-              boxShadow: hovered === "use" ? `0 10px 30px ${RED_GLOW}` : "none",
-            }}
+            className="showcase-path group relative overflow-hidden rounded-2xl border p-5 sm:p-6 text-left transition-all duration-200 min-h-[210px] flex flex-col"
+            style={{ color: hovered === "use" ? RED : undefined }}
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{ background: `linear-gradient(180deg, ${RED}10, transparent 55%)` }}
+            />
+            <div className="mb-3 flex items-center gap-3">
               <div
-                className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl"
+                className="flex h-12 w-12 items-center justify-center rounded-xl border text-xl"
                 style={{
-                  backgroundColor: RED + "25",
-                  boxShadow: `0 0 20px ${RED}40`,
+                  opacity: hovered === "use" ? 1 : 0.85,
+                  borderColor: RED + "33",
+                  backgroundColor: RED + "10",
                 }}
               >
                 🚀
@@ -878,178 +946,23 @@ function PillChoice({
                 <div className="font-bold text-xl" style={{ color: RED }}>
                   Deployment Fast Track
                 </div>
-                <div className="text-xs font-mono text-retro-dim uppercase tracking-wider">
-                  Install & Operate
+                <div className="text-xs text-retro-dim uppercase tracking-wider">
+                  Install and operate
                 </div>
               </div>
             </div>
-            <p className="text-sm text-zinc-300 leading-relaxed mb-4">
-              Follow the shortest path to install the stack, onboard data,
-              validate signals, and start operating confidently.
+            <p className="mb-4 text-sm leading-relaxed text-zinc-300">
+              Follow the shortest route to install, send telemetry, validate
+              data, and start using the stack quickly.
             </p>
-            <div className="mt-auto flex flex-wrap gap-1.5">
-              {["Quick Start", "Operations"].map((t) => (
-                <span
-                  key={t}
-                  className="text-xs px-2 py-0.5 rounded font-mono"
-                  style={{ backgroundColor: RED + "20", color: RED }}
-                >
-                  {t}
-                </span>
-              ))}
+            <div
+              className="mt-auto inline-flex items-center gap-2 text-sm font-semibold"
+              style={{ color: RED }}
+            >
+              Open the install and usage path
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
             </div>
           </motion.button>
-        </div>
-
-        <div className="order-1 mt-8 flex flex-col items-center">
-          <div className="mb-3 grid w-full grid-cols-1 sm:grid-cols-3 gap-2">
-            {INSTALL_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => {
-                  setActiveInstallTab(tab.key);
-                  setCopied(false);
-                }}
-                className="w-full rounded-xl border px-3 py-2 text-xs font-mono transition min-h-10"
-                style={{
-                  borderColor:
-                    activeInstallTab === tab.key
-                      ? installAccent + "75"
-                      : "#3f3f46",
-                  backgroundColor:
-                    activeInstallTab === tab.key
-                      ? installAccent + "1f"
-                      : "#0a0a0ab3",
-                  color:
-                    activeInstallTab === tab.key ? installAccent : "#d4d4d8",
-                  boxShadow:
-                    activeInstallTab === tab.key
-                      ? `0 0 16px ${installGlow}`
-                      : "none",
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="relative w-full">
-            <IdeCodeBlock code={activeInstallCommand} accent={installAccent} />
-            <button
-              onClick={handleCopy}
-              className="absolute top-1 right-1 p-1 rounded bg-retro-bg/60 hover:bg-retro-bg/80 text-retro-dim"
-              title="Copy command"
-            >
-              {copied ? (
-                <CheckCircle2 className="h-4 w-4" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </button>
-            {copied && (
-              <span className="absolute top-2 right-8 text-xs text-green-400">
-                Copied!
-              </span>
-            )}
-          </div>
-          <p className="mt-3 text-sm text-zinc-300">
-            {isStackTab
-              ? `Quick start: run this command, then follow the stack deployment guide for watchdog ${STACK_RELEASE_TAG}.`
-              : `Quick start: run this command, then follow the Ojo deployment guide for ${OJO_RELEASE_TAG}.`}
-          </p>
-          {isStackTab ? (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <a
-                href={deploymentGuideUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
-                style={{
-                  borderColor: RED + "65",
-                  backgroundColor: RED + "14",
-                  color: RED,
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Watchdog deployment
-              </a>
-              <a
-                href={WATCHDOG_RELEASE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
-                style={{
-                  borderColor: BLUE + "65",
-                  backgroundColor: BLUE + "14",
-                  color: BLUE,
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Watchdog release {STACK_RELEASE_TAG}
-              </a>
-            </div>
-          ) : (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <a
-                href={deploymentGuideUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
-                style={{
-                  borderColor: BLUE + "65",
-                  backgroundColor: BLUE + "14",
-                  color: BLUE,
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                {deploymentGuideLabel}
-              </a>
-              <a
-                href={OJO_RELEASE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
-                style={{
-                  borderColor: RED + "65",
-                  backgroundColor: RED + "14",
-                  color: RED,
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Ojo release {OJO_RELEASE_TAG}
-              </a>
-            </div>
-          )}
-          <div className="mt-4 flex w-full flex-col items-stretch sm:items-center gap-3">
-            <button
-              onClick={() => onChoose("docs")}
-              className="inline-flex min-h-11 w-full sm:w-auto justify-center items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-mono font-semibold transition"
-              style={{
-                borderColor: DOCS + "55",
-                backgroundColor: DOCS + "12",
-                color: DOCS,
-                boxShadow: `0 0 22px ${DOCS_GLOW}`,
-              }}
-            >
-              <FileText className="h-4 w-4" />
-              Open Full Product Documentation
-            </button>
-
-            <div className="flex w-full flex-wrap items-center justify-center gap-2">
-              {DOC_LINKS.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-xs font-mono text-zinc-300 transition hover:border-zinc-700 hover:text-zinc-100"
-                >
-                  <FileText className="h-3.5 w-3.5" />
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
       </motion.div>
     </div>
@@ -1201,6 +1114,50 @@ END OF TERMS AND CONDITIONS`;
 
 type LegalStep = "notice" | "license";
 
+function normalizeLegalText(docText: string) {
+  const blocks: Array<{ type: "blank" | "divider" | "heading" | "paragraph"; text: string }> = [];
+  let paragraph = "";
+
+  const flushParagraph = () => {
+    if (!paragraph) return;
+    blocks.push({ type: "paragraph", text: paragraph });
+    paragraph = "";
+  };
+
+  for (const rawLine of docText.split("\n")) {
+    const trimmed = rawLine.trim();
+    const isDivider = /^─{6,}$/.test(trimmed);
+    const isSectionHeading =
+      /^[A-Z][A-Z0-9 &(),./-]+$/.test(trimmed) &&
+      trimmed.length > 4 &&
+      !trimmed.startsWith("HTTP://");
+    const isClauseHeading = /^\d+\.\s+[A-Z]/.test(trimmed);
+
+    if (!trimmed) {
+      flushParagraph();
+      blocks.push({ type: "blank", text: "" });
+      continue;
+    }
+
+    if (isDivider) {
+      flushParagraph();
+      blocks.push({ type: "divider", text: trimmed });
+      continue;
+    }
+
+    if (isSectionHeading || isClauseHeading) {
+      flushParagraph();
+      blocks.push({ type: "heading", text: trimmed });
+      continue;
+    }
+
+    paragraph = paragraph ? `${paragraph} ${trimmed}` : trimmed;
+  }
+
+  flushParagraph();
+  return blocks;
+}
+
 function LegalGate({
   path,
   onAccept,
@@ -1232,14 +1189,20 @@ function LegalGate({
 
   useEffect(() => {
     setScrolledToBottom(false);
-    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+      const { scrollHeight, clientHeight } = scrollRef.current;
+      if (scrollHeight <= clientHeight + 8) setScrolledToBottom(true);
+    }
   }, [step]);
 
   const handlePrimary = () => {
     if (isNotice) setStep("license");
     else onAccept();
   };
-  const legalLines = docText.split("\n");
+  const legalBlocks = isNotice
+    ? docText.split("\n").map((line) => ({ type: "paragraph" as const, text: line }))
+    : normalizeLegalText(docText);
 
   return (
     <div className="min-h-screen bg-retro-bg text-retro-text font-sans flex flex-col items-center justify-center relative overflow-hidden px-4 py-8 sm:px-5 sm:py-10">
@@ -1253,7 +1216,7 @@ function LegalGate({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -16 }}
         transition={{ duration: 0.25 }}
-        className="relative z-10 w-full max-w-5xl"
+        className="relative z-10 w-full max-w-4xl"
       >
         <div className="flex items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
@@ -1270,18 +1233,11 @@ function LegalGate({
           </div>
         </div>
 
-        <div
-          className="rounded-3xl border overflow-hidden bg-zinc-950/95 backdrop-blur-sm"
-          style={{
-            borderColor: accent + "40",
-            boxShadow: `0 12px 36px rgba(0,0,0,0.45), 0 0 0 1px ${accent}20`,
-          }}
-        >
+        <div className="overflow-hidden">
           <div
-            className="flex items-center justify-between px-4 sm:px-6 py-4 border-b"
+            className="flex items-center justify-between px-0 py-2"
             style={{
               borderColor: accent + "25",
-              backgroundColor: accent + "08",
             }}
           >
             <span className="text-xs font-mono font-bold tracking-wide text-retro-dim">
@@ -1298,26 +1254,29 @@ function LegalGate({
           <div
             ref={scrollRef}
             onScroll={handleScroll}
-            className="px-4 sm:px-6 py-5 overflow-y-auto font-mono text-xs scrollbar-thin scrollbar-track-zinc-900 scrollbar-thumb-zinc-700 hover:scrollbar-thumb-zinc-600 leading-relaxed text-zinc-300 bg-retro-bg"
-            style={{ maxHeight: "420px" }}
+            className="legal-page px-0 py-5 font-mono text-xs leading-relaxed text-zinc-300"
           >
-            <div className="legal-doc whitespace-pre-wrap break-words">
-              {legalLines.map((line, idx) => {
-                const trimmed = line.trim();
-                const isDivider = /^─{6,}$/.test(trimmed);
-                const isSectionHeading =
-                  /^[A-Z][A-Z0-9 &(),./-]+$/.test(trimmed) &&
-                  trimmed.length > 4 &&
-                  !trimmed.startsWith("HTTP://");
-                const isClauseHeading = /^\d+\.\s+[A-Z]/.test(trimmed);
-                const isBoldLine = isSectionHeading || isClauseHeading;
+            <div className={`legal-doc break-words ${isNotice ? "whitespace-pre-wrap" : ""}`}>
+              {legalBlocks.map((block, idx) => {
+                const isDivider = block.type === "divider";
+                const isHeading = block.type === "heading";
+                const blockClassName =
+                  block.type === "blank"
+                    ? "h-3"
+                    : block.type === "divider"
+                      ? "my-4"
+                      : block.type === "heading"
+                        ? "mt-5 mb-2"
+                        : isNotice
+                          ? "mb-0"
+                          : "mb-3 leading-7";
                 return (
                   <div
-                    key={`${idx}-${line}`}
-                    className={isBoldLine ? "font-bold text-retro-text" : "font-medium"}
+                    key={`${idx}-${block.type}-${block.text}`}
+                    className={`${isHeading ? "font-normal text-retro-text" : "font-normal"} ${blockClassName}`}
                     style={{ opacity: isDivider ? 0.65 : 1 }}
                   >
-                    {line || " "}
+                    {block.type === "blank" ? " " : block.text}
                   </div>
                 );
               })}
@@ -1326,10 +1285,9 @@ function LegalGate({
           </div>
 
           <div
-            className="border-t px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            className="px-0 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             style={{
               borderColor: accent + "25",
-              backgroundColor: accent + "05",
             }}
           >
             <button
@@ -1382,9 +1340,7 @@ export default function App() {
     if (typeof window === "undefined") return "dark";
     const saved = window.localStorage.getItem("showcase-theme");
     if (saved === "dark" || saved === "light") return saved;
-    return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    return "dark";
   });
   const [path, setPath] = useState<Path>(null);
   const [legalDone, setLegalDone] = useState(false);
@@ -1599,14 +1555,15 @@ export default function App() {
                 <button
                   key={entry.label}
                   onClick={() => go(entry.index)}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                  className={
+                    isActive
+                      ? "showcase-section-tab showcase-section-tab-active inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                      : "showcase-section-tab inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-mono transition"
+                  }
                   style={{
-                    borderColor: isActive ? accent + "60" : accent + "25",
-                    backgroundColor: isActive
-                      ? accent + "16"
-                      : "rgba(10, 10, 10, 0.45)",
-                    color: isActive ? accent : "#a1a1aa",
-                    boxShadow: isActive ? `0 0 18px ${glow}` : "none",
+                    borderColor: isActive ? accent + "55" : undefined,
+                    color: isActive ? accent : undefined,
+                    boxShadow: isActive ? `0 12px 28px ${accent}20` : undefined,
                   }}
                 >
                   <span className="text-[10px] uppercase tracking-[0.16em] opacity-70">
@@ -1620,21 +1577,13 @@ export default function App() {
         )}
 
         <main className="mt-8">
-          <div
-            className="rounded-3xl border bg-zinc-950/90 overflow-hidden backdrop-blur-sm"
-            style={{
-              borderColor: accent + "35",
-              boxShadow: `0 16px 44px rgba(0,0,0,0.48), 0 0 0 1px ${accent}16`,
-            }}
-          >
+          <div className="overflow-hidden">
             <div
               ref={slideFrameRef}
-              className="px-4 py-6 sm:px-10 sm:py-10 relative min-h-[440px] sm:min-h-[520px]"
+              className="px-0 py-6 sm:py-10 relative min-h-[440px] sm:min-h-[520px]"
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
-              <Tick accent={accent} />
-
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${path}-${slideIndex}`}
@@ -1682,10 +1631,9 @@ export default function App() {
             </div>
 
             <div
-              className="px-4 py-4 sm:px-10 flex items-center justify-between gap-2 sm:gap-3"
+              className="px-0 py-4 flex items-center justify-between gap-2 sm:gap-3"
               style={{
                 borderColor: accent + "25",
-                backgroundColor: accent + "05",
               }}
             >
               <button
@@ -1711,7 +1659,6 @@ export default function App() {
                       backgroundColor:
                         i === slideIndex ? accent : "transparent",
                       borderColor: i === slideIndex ? accent : accent + "40",
-                      boxShadow: i === slideIndex ? `0 0 10px ${glow}` : "none",
                       width: i === slideIndex ? "24px" : "8px",
                     }}
                     aria-label={`Go to slide ${i + 1}`}
@@ -1740,7 +1687,7 @@ export default function App() {
             </div>
             <div
               className="text-xs font-mono text-retro-dim"
-              style={{ color: accent + "80" }}
+              style={{ color: theme === "light" ? "#0f172a" : accent }}
             >
               {slideIndex + 1} of {total} · {progressPct}% complete
             </div>

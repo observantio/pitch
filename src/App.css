@@ -4,23 +4,37 @@
 
 :root,
 :root[data-theme="dark"] {
-  --showcase-bg-rgb: 11 14 20;
-  --showcase-bg-alt-rgb: 16 22 31;
-  --showcase-panel-rgb: 20 25 35;
-  --showcase-text: #e6e6e6;
-  --showcase-muted: #a1a1aa;
-  --showcase-border: rgba(255, 255, 255, 0.16);
-  --showcase-glow: #7dd3fc;
+  --showcase-bg-rgb: 6 9 15;
+  --showcase-bg-alt-rgb: 10 16 25;
+  --showcase-panel-rgb: 21 29 42;
+  --showcase-surface-light-rgb: 27 37 53;
+  --showcase-text: #f3f7ff;
+  --showcase-muted: #bdc8db;
+  --showcase-subtle: #8a98ad;
+  --showcase-border: rgba(240, 247, 255, 0.36);
+  --showcase-glow: rgb(16 185 129);
+  --showcase-primary-rgb: 16 185 129;
+  --showcase-primary-light-rgb: 52 211 153;
+  --showcase-tab-rgb: 21 29 42;
+  --showcase-tab-active-rgb: 27 37 53;
+  --showcase-code-rgb: 17 24 36;
 }
 
 :root[data-theme="light"] {
-  --showcase-bg-rgb: 242 246 252;
-  --showcase-bg-alt-rgb: 226 237 248;
+  --showcase-bg-rgb: 255 255 255;
+  --showcase-bg-alt-rgb: 255 255 255;
   --showcase-panel-rgb: 255 255 255;
+  --showcase-surface-light-rgb: 250 250 250;
   --showcase-text: #0f172a;
-  --showcase-muted: #475569;
-  --showcase-border: rgba(15, 23, 42, 0.18);
-  --showcase-glow: #0284c7;
+  --showcase-muted: #0f172a;
+  --showcase-subtle: #1e293b;
+  --showcase-border: #b8c4d6;
+  --showcase-glow: rgb(59 130 246);
+  --showcase-primary-rgb: 59 130 246;
+  --showcase-primary-light-rgb: 96 165 250;
+  --showcase-tab-rgb: 255 255 255;
+  --showcase-tab-active-rgb: 250 250 250;
+  --showcase-code-rgb: 255 255 255;
 }
 
 html,
@@ -30,22 +44,24 @@ body,
 }
 
 html {
-  font-family: "Ubuntu Sans Mono", monospace;
+  font-family: "Ubuntu Mono", monospace;
 }
 
 body {
   margin: 0;
-  background: rgb(var(--showcase-bg-rgb));
-  color: var(--showcase-text);
-  background-image:
+  background:
     radial-gradient(
-      circle at 50% -20%,
-      rgb(var(--showcase-bg-alt-rgb) / 0.62),
-      transparent 42%
+      1200px circle at 85% -10%,
+      rgb(var(--showcase-primary-rgb) / 0.14),
+      transparent 45%
     ),
-    linear-gradient(rgb(148 163 184 / 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(148 163 184 / 0.1) 1px, transparent 1px);
-  background-size: auto, 40px 40px, 40px 40px;
+    linear-gradient(
+      to bottom,
+      rgb(var(--showcase-bg-rgb)),
+      rgb(var(--showcase-bg-alt-rgb)),
+      rgb(var(--showcase-bg-rgb))
+    );
+  color: var(--showcase-text);
   background-attachment: fixed;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
@@ -95,12 +111,142 @@ body {
   color: var(--showcase-glow);
 }
 
+.showcase-body-copy {
+  color: rgb(229 231 235 / 0.92);
+}
+
 .border-retro-border {
   border-color: var(--showcase-border);
 }
 
 .showcase-code-panel {
-  background-color: rgb(10 10 10);
+  background-color: rgb(var(--showcase-code-rgb));
+}
+
+.showcase-home-tabs {
+  background-color: transparent;
+}
+
+.showcase-home-tab {
+  border: 1px solid var(--showcase-border);
+  background-color: rgb(var(--showcase-tab-rgb) / 0.92);
+  color: var(--showcase-muted);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 8px 20px rgb(2 8 23 / 0.12);
+}
+
+.showcase-home-tab:hover {
+  color: var(--showcase-text);
+  border-color: rgb(var(--showcase-primary-rgb) / 0.28);
+  background-color: rgb(var(--showcase-surface-light-rgb) / 0.95);
+}
+
+.showcase-home-tab-active {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: rgb(255 255 255 / 0.7);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 10px 22px rgb(255 255 255 / 0.08);
+}
+
+.showcase-home-tab-linux {
+  border-color: rgb(34 197 94 / 0.6);
+  background: linear-gradient(180deg, #166534 0%, #14532d 100%);
+  color: #f0fdf4;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 12px 24px rgb(34 197 94 / 0.22);
+}
+
+.showcase-home-tab-linux:hover {
+  border-color: rgb(74 222 128 / 0.72);
+  background: linear-gradient(180deg, #15803d 0%, #166534 100%);
+  color: #f0fdf4;
+}
+
+.showcase-home-tab-windows {
+  border-color: rgb(59 130 246 / 0.6);
+  background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
+  color: #eff6ff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 12px 24px rgb(59 130 246 / 0.22);
+}
+
+.showcase-home-tab-windows:hover {
+  border-color: rgb(96 165 250 / 0.72);
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  color: #eff6ff;
+}
+
+.showcase-section-tab {
+  border-color: var(--showcase-border);
+  background: rgb(var(--showcase-tab-rgb) / 0.94);
+  color: var(--showcase-subtle);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 10px 24px rgb(2 8 23 / 0.18);
+  backdrop-filter: blur(10px);
+}
+
+.showcase-section-tab:hover {
+  color: var(--showcase-text);
+  border-color: rgb(var(--showcase-primary-rgb) / 0.28);
+  background: rgb(var(--showcase-surface-light-rgb) / 0.96);
+  transform: translateY(-1px);
+}
+
+.showcase-section-tab-active {
+  color: var(--showcase-text);
+  border-color: rgb(var(--showcase-primary-rgb) / 0.4);
+  background: rgb(var(--showcase-tab-active-rgb) / 0.98);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 0 0 1px rgb(var(--showcase-primary-rgb) / 0.14),
+    0 14px 30px rgb(2 8 23 / 0.22);
+}
+
+.showcase-link-inline {
+  color: var(--showcase-muted);
+}
+
+.showcase-link-inline:hover {
+  color: var(--showcase-text);
+}
+
+.showcase-path {
+  border: 1px solid var(--showcase-border);
+  background: rgb(var(--showcase-panel-rgb) / 0.82);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.04),
+    0 12px 28px rgb(2 8 23 / 0.14);
+}
+
+.showcase-path:hover {
+  border-color: rgb(var(--showcase-primary-rgb) / 0.3);
+  background: rgb(var(--showcase-surface-light-rgb) / 0.92);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 18px 34px rgb(2 8 23 / 0.2);
+}
+
+.showcase-service-block {
+  border-top: 1px solid var(--showcase-border);
+}
+
+.showcase-image-frame {
+  background-color: rgb(var(--showcase-bg-alt-rgb) / 0.42);
+}
+
+.legal-page {
+  overflow: visible;
+}
+
+.legal-doc {
+  width: 100%;
 }
 
 :root[data-theme="light"] .bg-zinc-950\/90,
@@ -141,23 +287,23 @@ body {
 
 :root[data-theme="light"] .text-zinc-300,
 :root[data-theme="light"] .text-zinc-300\/90 {
-  color: #334155 !important;
+  color: #1e293b !important;
 }
 
 :root[data-theme="light"] .text-zinc-400 {
-  color: #475569 !important;
+  color: #1e293b !important;
 }
 
 :root[data-theme="light"] .text-zinc-500 {
-  color: #64748b !important;
+  color: #0f172a !important;
 }
 
 :root[data-theme="light"] .text-zinc-600 {
-  color: #94a3b8 !important;
+  color: #334155 !important;
 }
 
 :root[data-theme="light"] .showcase-code-shell {
-  box-shadow: 0 12px 28px rgb(15 23 42 / 0.13) !important;
+  box-shadow: none !important;
 }
 
 :root[data-theme="light"] .showcase-code-header {
@@ -185,6 +331,144 @@ body {
   color: #b45309 !important;
 }
 
+:root[data-theme="light"] .showcase-section-tab {
+  border-color: #b8c4d6;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 1),
+    0 8px 20px rgb(15 23 42 / 0.04);
+}
+
+:root[data-theme="light"] .showcase-section-tab:hover {
+  color: #0f172a;
+  border-color: rgb(59 130 246 / 0.34);
+  background: rgb(255 255 255);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 10px 24px rgb(59 130 246 / 0.08);
+}
+
+:root[data-theme="light"] .showcase-section-tab-active {
+  color: #0f172a;
+  border-color: rgb(59 130 246 / 0.36);
+  background: #fafafa;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 0 0 1px rgb(59 130 246 / 0.12),
+    0 12px 24px rgb(15 23 42 / 0.06);
+}
+
+:root[data-theme="light"] .showcase-home-tab {
+  border-color: #b8c4d6;
+  background-color: #ffffff;
+  color: #0f172a;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 6px 16px rgb(15 23 42 / 0.04);
+}
+
+:root[data-theme="light"] .showcase-home-tab-linux {
+  border-color: rgb(22 163 74 / 0.5);
+  background: linear-gradient(180deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #14532d;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.95),
+    0 10px 22px rgb(34 197 94 / 0.12);
+}
+
+:root[data-theme="light"] .showcase-home-tab-linux:hover {
+  border-color: rgb(22 163 74 / 0.62);
+  background: linear-gradient(180deg, #bbf7d0 0%, #86efac 100%);
+  color: #14532d;
+}
+
+:root[data-theme="light"] .showcase-home-tab-windows {
+  border-color: rgb(37 99 235 / 0.5);
+  background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e3a8a;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.95),
+    0 10px 22px rgb(59 130 246 / 0.12);
+}
+
+:root[data-theme="light"] .showcase-home-tab-windows:hover {
+  border-color: rgb(37 99 235 / 0.62);
+  background: linear-gradient(180deg, #bfdbfe 0%, #93c5fd 100%);
+  color: #1e3a8a;
+}
+
+:root[data-theme="light"] .showcase-path {
+  background: #ffffff;
+  border-color: #b8c4d6;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 14px 28px rgb(15 23 42 / 0.05);
+}
+
+:root[data-theme="light"] .showcase-path:hover {
+  border-color: rgb(59 130 246 / 0.28);
+  background: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255),
+    0 18px 36px rgb(59 130 246 / 0.08);
+}
+
+:root[data-theme="light"] .showcase-home-tab:hover {
+  color: #0f172a;
+  border-color: rgb(59 130 246 / 0.32);
+  background-color: #ffffff;
+}
+
+:root[data-theme="light"] .showcase-home-tab-active {
+  color: #0f172a;
+  border-color: #0f172a;
+  background-color: #0f172a;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 10px 22px rgb(15 23 42 / 0.14);
+}
+
+:root[data-theme="light"] .showcase-home-tab-active,
+:root[data-theme="light"] .showcase-home-tab-active:hover {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .showcase-home-tab-active.showcase-home-tab-linux,
+:root[data-theme="light"] .showcase-home-tab-active.showcase-home-tab-windows {
+  border-color: #0f172a;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.showcase-home-tab-active.showcase-home-tab-linux,
+.showcase-home-tab-active.showcase-home-tab-windows,
+.showcase-home-tab-active.showcase-home-tab-stack {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 10px 22px rgb(255 255 255 / 0.08);
+}
+
+:root[data-theme="light"] button.text-retro-dim,
+:root[data-theme="light"] .text-retro-dim {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .showcase-body-copy {
+  color: #334155;
+}
+
 :root[data-theme="light"] .legal-doc {
   color: #1e293b;
+}
+
+:root[data-theme="light"] .showcase-service-block {
+  border-top-color: rgb(148 163 184 / 0.3);
+}
+
+:root[data-theme="light"] .showcase-image-frame {
+  background-color: rgb(255 255 255 / 0.92);
+  border-color: rgb(148 163 184 / 0.34);
 }

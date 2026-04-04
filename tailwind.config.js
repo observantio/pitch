@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Ubuntu Sans Mono", "monospace"],
+        sans: ["Ubuntu Mono", "monospace"],
         mono: ["Ubuntu Mono", "monospace"],
       },
     },
