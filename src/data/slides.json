@@ -196,7 +196,7 @@
       "subtitle": "Goal: make production observability secure by default, easy to operate, and fast to investigate. We are currently in Beta, and we want to build this into a production-grade platform with your feedback and help.",
       "type": "code",
       "codeLabel": "Beta today -> production-grade tomorrow (with your help)",
-      "code": "# End goal: deploy the full stack with a secure control plane\n# Current status: Beta (actively evolving based on user feedback)\n\n# Spin up Watchdog + the full LGTM stack\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py\npython3 /tmp/install.py\n\n# What we're trying to achieve in production:\n#   JWT asymmetric signing (RS256/ES256)\n#   Keycloak OIDC with MFA enforcement\n#   Rate-limited, token-validated OTLP gateway\n#   RBAC-enforced Grafana proxy (NGINX)\n\n# Trigger an AI RCA job via the control plane:\ncurl -X POST http://localhost:4319/api/rca/jobs \\\n# Help shape this Beta:\n#   Report issues, request features, and share production requirements.",
+      "code": "# End goal: deploy the full stack with a secure control plane\n# Current status: Beta (actively evolving based on user feedback)\n\n# Spin up Watchdog + the full LGTM stack\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/download.sh -o download.sh\nbash download.sh\n\n# Optional: pin a release and architecture\n# bash download.sh v0.0.2 arm64\n\n# What we're trying to achieve in production:\n#   JWT asymmetric signing (RS256/ES256)\n#   Keycloak OIDC with MFA enforcement\n#   Rate-limited, token-validated OTLP gateway\n#   RBAC-enforced Grafana proxy (NGINX)\n\n# Trigger an AI RCA job via the control plane:\ncurl -X POST http://localhost:4319/api/rca/jobs \\\n# Help shape this Beta:\n#   Report issues, request features, and share production requirements.",
       "links": [
         {
           "label": "Read Deployment Guide",
@@ -237,7 +237,7 @@
       "title": "Up and running in under 5 minutes.",
       "type": "code",
       "codeLabel": "Two ways to start — pick one",
-      "code": "# Option A: curl installer (quickest)\n# Prompts for a username and password (min 16 chars)\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/install.py -o /tmp/install.py\npython3 /tmp/install.py\n\n# Option B: clone and run manually\ngit clone https://github.com/observantio/watchdog Observantio && cd Observantio\ngit clone https://github.com/observantio/resolver Resolver\ngit clone https://github.com/observantio/notifier Notifier\n\ncp .env.example .env\n\n# Generate your Fernet encryption key and set it as DATA_ENCRYPTION_KEY in .env\npython3 -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"\n\ndocker compose up -d --build\n\n# Verify everything is up\ndocker compose ps\ncurl http://localhost:4319/ready"
+      "code": "# Option A: curl downloader (quickest)\n# Uses the latest release by default and validates docker access first\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/download.sh -o download.sh\nbash download.sh\n\n# Optional: pin a specific release and architecture\n# bash download.sh v0.0.2 amd64\n# bash download.sh v0.0.2 arm64\n\n# Option B: inspect the script first, then run it\ncurl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/download.sh -o download.sh\nsed -n '1,220p' download.sh\nbash download.sh"
     },
     {
       "kicker": "Access the Platform",

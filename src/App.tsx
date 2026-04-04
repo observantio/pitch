@@ -49,19 +49,12 @@ const INSTALL_TABS: Array<{ key: InstallerTab; label: string }> = [
   { key: "windows", label: `Ojo Windows ${OJO_RELEASE_TAG}` },
 ];
 const INSTALL_COMMANDS: Record<InstallerTab, string> = {
-  stack: `VERSION="${STACK_RELEASE_TAG}"
-ARCH="multi" # amd64 | arm64 | multi
-REPO="observantio/watchdog"
-ASSET="observantio-${STACK_RELEASE_TAG}-linux-\${ARCH}.tar.gz"
-URL="https://github.com/\${REPO}/releases/download/${STACK_RELEASE_TAG}/\${ASSET}"
+  stack: `curl -fsSL https://raw.githubusercontent.com/observantio/watchdog/main/download.sh -o download.sh
+bash download.sh
 
-mkdir -p "$HOME/observantio" && cd "$HOME/observantio"
-curl -fL -o "\${ASSET}" "\${URL}"
-tar -xzf "\${ASSET}"
-cd "observantio-${STACK_RELEASE_TAG}-linux-\${ARCH}"
-chmod +x install.sh 2>/dev/null || true
-chmod +x ./release/install.sh 2>/dev/null || true
-./install.sh || ./release/install.sh`,
+# Optional explicit release + architecture:
+bash download.sh ${STACK_RELEASE_TAG} arm64
+# Supported arch values: amd64 | arm64 | multi`,
   linux: `curl -L https://github.com/observantio/ojo/releases/download/${OJO_RELEASE_TAG}/ojo-${OJO_RELEASE_TAG}-linux-x86_64 -o ojo
 chmod +x ojo
 sudo mv ojo /usr/local/bin/ojo
@@ -175,7 +168,7 @@ function IdeCodeBlock({ code, accent }: { code: string; accent: string }) {
           <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
           <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
           <span className="ml-2 text-[11px] font-mono text-zinc-500">
-            install.sh
+            terminal
           </span>
         </div>
         <pre className="px-3 sm:px-4 py-3 text-left font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-700/50 hover:scrollbar-thumb-zinc-600/60">
