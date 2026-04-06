@@ -20,7 +20,7 @@
       },
       {
         "label": "Full User Guide",
-        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
         "description": "Install, operate, troubleshoot, harden, and learn the product page by page."
       },
       {
@@ -212,7 +212,7 @@
       "First trust docker-compose.yml because it defines the live topology, port exposure, and service wiring for this workspace.",
       "Then trust .env.example because it is the configuration contract across Watchdog, Gatekeeper, Notifier, Resolver, and the supporting infrastructure.",
       "Then trust service code such as main.py, routers, config modules, and frontend route/API files because they define the actual behavior exposed to users.",
-      "The README is the architecture overview, and USER_GUIDE is the operator runbook for install, first-run flows, page-by-page usage, and hardening."
+      "The README is the architecture overview, and USER GUIDE is the operator runbook for install, first-run flows, page-by-page usage, and hardening."
     ],
     "links": [
       {
@@ -222,7 +222,7 @@
       },
       {
         "label": "Operator User Guide",
-        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
         "description": "Read the install, UI, alerting, RCA, and hardening walkthrough."
       }
     ]

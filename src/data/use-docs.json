@@ -15,7 +15,7 @@
     "links": [
       {
         "label": "User Guide",
-        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
         "description": "Canonical deployment and operator walkthrough."
       },
       {
@@ -223,7 +223,7 @@
     "type": "bullets",
     "bullets": [
       "Use the README for architecture, stack purpose, service roles, and quick-start mental model.",
-      "Use USER_GUIDE for prerequisites, deployment, UI page guidance, alerting setup, RCA setup, auth modes, hardening, and common problems.",
+      "Use USER GUIDE for prerequisites, deployment, UI page guidance, alerting setup, RCA setup, auth modes, hardening, and common problems.",
       "Use docker-compose.yml, .env.example, and service main/router/config files when you need exact implementation."
     ],
     "links": [
@@ -233,8 +233,8 @@
         "description": "Architecture and full stack overview."
       },
       {
-        "label": "Open USER_GUIDE",
-        "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+        "label": "Open USER GUIDE",
+        "href": "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
         "description": "Deployment, UI, alerting, RCA, and hardening guide."
       },
       {

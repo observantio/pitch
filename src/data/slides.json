@@ -200,7 +200,7 @@
       "links": [
         {
           "label": "Read Deployment Guide",
-          "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+          "href": "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
           "description": "Step-by-step setup, first login, key management, and troubleshooting."
         },
         {
@@ -375,7 +375,7 @@
       "bullets": [
         "Run your own telemetry through the OTLP gateway and validate tenant isolation with API keys.",
         "Walk one full incident cycle: alert -> RCA -> incident collaboration -> resolution note.",
-        "Harden your deployment using USER_GUIDE production checklist before wider rollout."
+        "Harden your deployment using USER GUIDE production checklist before wider rollout."
       ],
       "links": [
         {
@@ -390,7 +390,7 @@
         },
         {
           "label": "Read the User Guide",
-          "href": "https://github.com/observantio/watchdog/blob/main/USER_GUIDE.md",
+          "href": "https://github.com/observantio/watchdog/blob/main/USER%20GUIDE.md",
           "description": "Detailed operator workflows and hardening guidance."
         },
         {
