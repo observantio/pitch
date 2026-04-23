@@ -23,7 +23,6 @@ import {
 import { slidesJson } from "./data/slideData";
 import type { Path, SlideData } from "./data/slideTypes";
 import sunIcon from "./assets/sun.png";
-import kubernetesIcon from "../../assets/kubernetes.png";
 import { BUILD_TIMESTAMP } from "./buildInfo";
 
 const clamp = (n: number, min: number, max: number) =>
@@ -147,7 +146,7 @@ function LinuxPenguinIcon() {
 function KubernetesIcon() {
   return (
     <img
-      src={kubernetesIcon}
+      src={withBaseUrl("/kubernetes.png")}
       alt=""
       className="h-4 w-4 object-contain"
       aria-hidden="true"
